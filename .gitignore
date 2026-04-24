@@ -1,0 +1,4 @@
+*.zip
+code.gs
+node_modules/
+.DS_Store
