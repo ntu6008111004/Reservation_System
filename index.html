@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบจองห้องประชุม - Modern Soft UI</title>
+  <!-- Google Fonts: Kanit -->
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <div class="container">
+    <div class="header">
+      <h1>ระบบจองห้องประชุม</h1>
+      <p>Meeting Room Reservation</p>
+    </div>
+
+    <div class="tabs">
+      <button id="tabBook" class="tab-btn active">จองห้องประชุม</button>
+      <button id="tabList" class="tab-btn">รายการการจอง</button>
+    </div>
+
+    <div id="bookingSection" class="section active">
+      <form id="bookingForm">
+        <!-- Room Select -->
+        <div class="form-group">
+          <label>เลือกห้องประชุม</label>
+          <div class="custom-select" id="roomSelect">
+            <input type="hidden" name="room" id="roomInput" required>
+            <div class="select-selected">-- กรุณาเลือกห้อง --</div>
+            <div class="select-items select-hide">
+              <div data-value="ROOM_A">ห้องประชุมชั้น 1</div>
+              <div data-value="ROOM_B">ห้องประชุมชั้น 2</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="date">วันที่ต้องการจอง</label>
+          <input type="date" id="date" name="date" required>
+        </div>
+
+        <!-- Start Time Select -->
+        <div class="form-group">
+          <label>เวลาเริ่มจอง</label>
+          <div id="startTimeLoader" class="loading-overlay"><div class="spinner"></div></div>
+          <div class="custom-select disabled" id="startTimeSelect">
+            <input type="hidden" name="startTime" id="startTimeInput" required>
+            <div class="select-selected">กรุณาเลือกห้องและวันที่ก่อน</div>
+            <div class="select-items select-hide">
+              <!-- Options injected by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- End Time Select -->
+        <div class="form-group">
+          <label>เวลาสิ้นสุด</label>
+          <div id="endTimeLoader" class="loading-overlay"><div class="spinner"></div></div>
+          <div class="custom-select disabled" id="endTimeSelect">
+            <input type="hidden" name="endTime" id="endTimeInput" required>
+            <div class="select-selected">กรุณาเลือกเวลาเริ่มก่อน</div>
+            <div class="select-items select-hide">
+              <!-- Options injected by JS -->
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="name">ชื่อผู้จอง</label>
+          <input type="text" id="name" name="name" required placeholder="กรอกชื่อ-นามสกุล">
+        </div>
+
+        <div class="form-group">
+          <label for="phone">เบอร์ติดต่อกลับ (ไม่บังคับ)</label>
+          <input type="tel" id="phone" name="phone" pattern="[0-9]{10}" placeholder="08xxxxxxxx (ถ้ามี)">
+        </div>
+
+        <button type="submit" id="submitBtn">บันทึกการจอง</button>
+      </form>
+    </div>
+
+    <div id="listSection" class="section">
+      <div class="list-filter">
+        <label>เลือกเดือนที่ต้องการดู:</label>
+        <div class="custom-select" id="monthFilterSelect">
+          <input type="hidden" id="monthFilter" value="">
+          <div class="select-selected">กำลังโหลดเดือน...</div>
+          <div class="select-items select-hide">
+            <!-- Options injected by JS -->
+          </div>
+        </div>
+      </div>
+      <div id="listLoader" class="list-loader"><div class="spinner"></div> กำลังโหลดข้อมูล...</div>
+      <div id="resList" class="res-card-container">
+        <!-- Cards injected by JS -->
+      </div>
+      <div id="noData" class="no-data" style="display:none;">ยังไม่มีรายการการจองในเดือนนี้</div>
+    </div>
+
+    <div id="alert" class="alert"></div>
+  </div>
+
+  <!-- Status Modal -->
+  <div id="statusModal" class="modal-overlay">
+    <div class="modal-content">
+      <div id="modalIcon" class="modal-icon loading"></div>
+      <h2 id="modalTitle">กำลังประมวลผล...</h2>
+      <p id="modalMessage">กรุณารอสักครู่...</p>
+      <button id="modalCloseBtn" class="modal-btn" style="display: none;">ตกลง</button>
+    </div>
+  </div>
+
+  <!-- Confirm Modal -->
+  <div id="confirmModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-icon warning">❓</div>
+      <h2 id="confirmTitle">ยืนยันการดำเนินการ</h2>
+      <p id="confirmMessage">คุณแน่ใจหรือไม่?</p>
+      <div class="modal-btn-group">
+        <button id="confirmYesBtn" class="modal-btn">ยืนยัน</button>
+        <button id="confirmNoBtn" class="modal-btn btn-secondary">ยกเลิก</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="api.js"></script>
+  <script src="scripts.js"></script>
+</body>
+</html>
