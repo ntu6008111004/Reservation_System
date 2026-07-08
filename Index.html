@@ -43,9 +43,34 @@
             </div>
 
             <form id="bookingForm" class="booking-form" novalidate>
+              <div class="meeting-toggle full" role="radiogroup" aria-label="รูปแบบประชุม">
+                <label>
+                  <input type="radio" name="meetingType" value="ONSITE" checked>
+                  <span>
+                    <strong>ประชุมในห้อง</strong>
+                    <small>ใช้ห้องประชุมตามเวลาที่เลือก</small>
+                  </span>
+                </label>
+                <label>
+                  <input type="radio" name="meetingType" value="ONLINE">
+                  <span>
+                    <strong>ออนไลน์เท่านั้น</strong>
+                    <small>เลือก resource ออนไลน์และสร้าง Google Meet URL</small>
+                  </span>
+                </label>
+                <label>
+                  <input type="radio" name="meetingType" value="HYBRID">
+                  <span>
+                    <strong>Hybrid</strong>
+                    <small>จองห้องจริงพร้อมสร้าง Google Meet URL</small>
+                  </span>
+                </label>
+              </div>
+
               <div class="field full">
                 <label for="roomSelect">ห้องประชุม / ทรัพยากร</label>
                 <select name="roomId" id="roomSelect" required></select>
+                <small id="roomHint" class="field-hint">ระบบจะแสดงห้องตามรูปแบบประชุมที่เลือก</small>
               </div>
 
               <div class="field full">
@@ -95,23 +120,6 @@
                     <input id="endClock" name="endClock" inputmode="numeric" placeholder="HH:mm" maxlength="5" autocomplete="off" required>
                   </div>
                 </div>
-              </div>
-
-              <div class="meeting-toggle full" role="radiogroup" aria-label="รูปแบบประชุม">
-                <label>
-                  <input type="radio" name="meetingType" value="ONSITE" checked>
-                  <span>
-                    <strong>ประชุมในห้อง</strong>
-                    <small>ใช้ห้องประชุมตามเวลาที่เลือก</small>
-                  </span>
-                </label>
-                <label>
-                  <input type="radio" name="meetingType" value="ONLINE">
-                  <span>
-                    <strong>ออนไลน์ + Google Meet</strong>
-                    <small>สร้าง Calendar event และ Meet URL</small>
-                  </span>
-                </label>
               </div>
 
               <div class="field full">
@@ -181,6 +189,7 @@
                 <option value="">ทั้งหมด</option>
                 <option value="ONSITE">ประชุมในห้อง</option>
                 <option value="ONLINE">ออนไลน์</option>
+                <option value="HYBRID">Hybrid</option>
               </select>
             </div>
             <div class="field">
@@ -201,6 +210,7 @@
             <div><strong id="filteredCount">0</strong><span>รายการที่พบ</span></div>
             <div><strong id="onlineCount">0</strong><span>ออนไลน์</span></div>
             <div><strong id="onsiteCount">0</strong><span>ในห้อง</span></div>
+            <div><strong id="hybridCount">0</strong><span>Hybrid</span></div>
           </div>
 
           <div id="calendarBoard" class="calendar-board"></div>
@@ -268,6 +278,10 @@
               <div>
                 <strong id="adminOnsiteBookings">0</strong>
                 <span>Onsite</span>
+              </div>
+              <div>
+                <strong id="adminHybridBookings">0</strong>
+                <span>Hybrid</span>
               </div>
               <div>
                 <strong id="adminActiveRooms">0</strong>

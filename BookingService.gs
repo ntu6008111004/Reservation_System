@@ -6,6 +6,10 @@ var BookingService = (function () {
     try {
       var room = DatabaseService.findByKey('rooms', 'id', input.roomId);
       if (!room || String(room.active) === 'false') throw new Error('Selected room is not available');
+      var meetingType = String(input.meetingType).toUpperCase();
+      var roomType = String(room.type || '').toUpperCase();
+      if (meetingType === 'ONLINE' && roomType !== 'ONLINE') throw new Error('Online meeting must use an online resource');
+      if ((meetingType === 'ONSITE' || meetingType === 'HYBRID') && roomType === 'ONLINE') throw new Error('Onsite/Hybrid meeting must use a physical room');
       var start = new Date(input.startTime);
       var end = new Date(input.endTime);
       ValidationService.validateBookingWindow(start, end);
@@ -14,7 +18,7 @@ var BookingService = (function () {
       var now = Utils.nowIso();
       var id = Utils.uuid();
       var calendarResult = {};
-      if (String(input.meetingType).toUpperCase() === 'ONLINE') {
+      if (meetingType === 'ONLINE' || meetingType === 'HYBRID') {
         calendarResult = CalendarService.createOnlineMeeting({
           id: id,
           title: input.title,
@@ -37,7 +41,7 @@ var BookingService = (function () {
         requesterEmail: input.requesterEmail,
         startTime: start.toISOString(),
         endTime: end.toISOString(),
-        meetingType: String(input.meetingType).toUpperCase(),
+        meetingType: meetingType,
         meetUrl: calendarResult.meetUrl || '',
         calendarEventId: calendarResult.eventId || '',
         notes: input.notes || '',

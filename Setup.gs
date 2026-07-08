@@ -60,8 +60,9 @@ function seedSettings() {
 
 function seedRooms() {
   var defaults = [
-    { id: 'ROOM-101', name: 'Meeting Room 101', capacity: 8, location: 'Office', type: 'ONSITE', active: 'true', notes: 'Default room' },
-    { id: 'ONLINE', name: 'Online Meeting', capacity: 100, location: 'Google Meet', type: 'ONLINE', active: 'true', notes: 'Creates a Google Meet URL' }
+    { id: 'ROOM-101', name: 'Meeting Room 101', capacity: 8, location: 'Office', type: 'ONSITE', active: 'true', notes: 'ใช้สำหรับประชุมในห้องหรือ Hybrid' },
+    { id: 'ROOM-102', name: 'Meeting Room 102', capacity: 12, location: 'Office', type: 'ONSITE', active: 'true', notes: 'ใช้สำหรับประชุมในห้องหรือ Hybrid' },
+    { id: 'ONLINE', name: 'Online Meeting', capacity: 100, location: 'Google Meet', type: 'ONLINE', active: 'true', notes: 'ใช้สำหรับประชุมออนไลน์และสร้าง Google Meet URL' }
   ];
   defaults.forEach(function (room) {
     if (!DatabaseService.findByKey('rooms', 'id', room.id)) DatabaseService.appendObject('rooms', room);

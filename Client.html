@@ -8,6 +8,7 @@
 
   const statusEl = document.getElementById('status');
   const roomSelect = document.getElementById('roomSelect');
+  const roomHint = document.getElementById('roomHint');
   const bookingsEl = document.getElementById('bookings');
   const form = document.getElementById('bookingForm');
   const submitButton = document.getElementById('submitButton');
@@ -33,6 +34,7 @@
   const filteredCount = document.getElementById('filteredCount');
   const onlineCount = document.getElementById('onlineCount');
   const onsiteCount = document.getElementById('onsiteCount');
+  const hybridCount = document.getElementById('hybridCount');
   const calendarBoard = document.getElementById('calendarBoard');
   const bookingTableBody = document.getElementById('bookingTableBody');
   const calendarRefreshButton = document.getElementById('calendarRefreshButton');
@@ -48,6 +50,7 @@
   const adminTotalBookings = document.getElementById('adminTotalBookings');
   const adminOnlineBookings = document.getElementById('adminOnlineBookings');
   const adminOnsiteBookings = document.getElementById('adminOnsiteBookings');
+  const adminHybridBookings = document.getElementById('adminHybridBookings');
   const adminActiveRooms = document.getElementById('adminActiveRooms');
   const adminRecentBookings = document.getElementById('adminRecentBookings');
 
@@ -229,11 +232,38 @@
     return data;
   }
 
+  function getSelectedMeetingType() {
+    return (new FormData(form).get('meetingType') || 'ONSITE').toUpperCase();
+  }
+
+  function getRoomOptionsForMeetingType(meetingType) {
+    if (meetingType === 'ONLINE') {
+      return state.rooms.filter((room) => String(room.type).toUpperCase() === 'ONLINE');
+    }
+    return state.rooms.filter((room) => String(room.type).toUpperCase() !== 'ONLINE');
+  }
+
+  function meetingTypeLabel(type) {
+    if (type === 'ONLINE') return 'Online';
+    if (type === 'HYBRID') return 'Hybrid';
+    return 'Onsite';
+  }
+
   function renderRooms() {
-    roomSelect.innerHTML = state.rooms.map((room) => {
+    const meetingType = getSelectedMeetingType();
+    const rooms = getRoomOptionsForMeetingType(meetingType);
+    roomSelect.innerHTML = rooms.map((room) => {
       const capacity = room.capacity ? ` · ${room.capacity} ที่นั่ง` : '';
       return `<option value="${escapeHtml(room.id)}">${escapeHtml(room.name)}${capacity}</option>`;
-    }).join('');
+    }).join('') || '<option value="">ไม่มีห้องที่ตรงเงื่อนไข</option>';
+    roomSelect.disabled = rooms.length === 0;
+    if (meetingType === 'ONLINE') {
+      roomHint.textContent = 'ออนไลน์เท่านั้น: แสดงเฉพาะ resource สำหรับสร้าง Google Meet';
+    } else if (meetingType === 'HYBRID') {
+      roomHint.textContent = 'Hybrid: แสดงเฉพาะห้องจริง และระบบจะสร้าง Google Meet เพิ่มให้';
+    } else {
+      roomHint.textContent = 'ประชุมในห้อง: แสดงเฉพาะห้องประชุมจริง';
+    }
 
     filterRoom.innerHTML = '<option value="">ทุกห้อง</option>' + state.rooms.map((room) => {
       return `<option value="${escapeHtml(room.id)}">${escapeHtml(room.name)}</option>`;
@@ -242,7 +272,7 @@
   }
 
   function bookingCardHtml(item) {
-    const typeLabel = item.meetingType === 'ONLINE' ? 'Online' : 'Onsite';
+    const typeLabel = meetingTypeLabel(item.meetingType);
     return `
       <article class="booking-card">
         <header>
@@ -291,7 +321,8 @@
 
     filteredCount.textContent = items.length;
     onlineCount.textContent = items.filter((item) => item.meetingType === 'ONLINE').length;
-    onsiteCount.textContent = items.filter((item) => item.meetingType !== 'ONLINE').length;
+    onsiteCount.textContent = items.filter((item) => item.meetingType === 'ONSITE').length;
+    hybridCount.textContent = items.filter((item) => item.meetingType === 'HYBRID').length;
 
     if (!items.length) {
       calendarBoard.innerHTML = '<div class="empty">ไม่พบรายการจองตามเงื่อนไข</div>';
@@ -313,7 +344,7 @@
           <div class="calendar-event">
             <strong>${formatTimeInput(new Date(item.startTime))} - ${formatTimeInput(new Date(item.endTime))}</strong>
             <span>${escapeHtml(item.title)}</span>
-            <small>${escapeHtml(item.roomName)} · ${item.meetingType === 'ONLINE' ? 'Online' : 'Onsite'}</small>
+            <small>${escapeHtml(item.roomName)} · ${meetingTypeLabel(item.meetingType)}</small>
           </div>
         `).join('')}
       </section>
@@ -325,7 +356,7 @@
         <td>${escapeHtml(item.title)}</td>
         <td>${escapeHtml(item.roomName)}</td>
         <td>${escapeHtml(item.requesterName || item.requesterEmail)}</td>
-        <td>${item.meetingType === 'ONLINE' ? 'Online' : 'Onsite'}</td>
+        <td>${meetingTypeLabel(item.meetingType)}</td>
         <td>${item.meetUrl ? `<a href="${escapeHtml(item.meetUrl)}" target="_blank" rel="noopener">เปิด</a>` : '-'}</td>
       </tr>
     `).join('');
@@ -363,6 +394,7 @@
       adminTotalBookings.textContent = dashboard.totalBookings || 0;
       adminOnlineBookings.textContent = dashboard.onlineBookings || 0;
       adminOnsiteBookings.textContent = dashboard.onsiteBookings || 0;
+      adminHybridBookings.textContent = dashboard.hybridBookings || 0;
       adminActiveRooms.textContent = dashboard.activeRooms || 0;
       adminRecentBookings.innerHTML = dashboard.recentBookings && dashboard.recentBookings.length
         ? dashboard.recentBookings.map(bookingCardHtml).join('')
@@ -405,7 +437,7 @@
     submitButton.disabled = true;
     submitButton.textContent = 'กำลังบันทึก...';
     setStatus('กำลังบันทึกการจอง...', '');
-    showLoading(data.meetingType === 'ONLINE' ? 'กำลังจองและสร้าง Google Meet...' : 'กำลังบันทึกการจอง...');
+    showLoading(data.meetingType === 'ONLINE' || data.meetingType === 'HYBRID' ? 'กำลังจองและสร้าง Google Meet...' : 'กำลังบันทึกการจอง...');
 
     try {
       const booking = await callApi('createBooking', data);
@@ -526,6 +558,10 @@
 
   document.querySelectorAll('#startClock, #endClock').forEach((input) => {
     input.addEventListener('input', () => applyTimeMask(input));
+  });
+
+  document.querySelectorAll('input[name="meetingType"]').forEach((input) => {
+    input.addEventListener('change', renderRooms);
   });
 
   [filterRoom, filterType, filterFromDate, filterToDate, filterSearch].forEach((input) => {
