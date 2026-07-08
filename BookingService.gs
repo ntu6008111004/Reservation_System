@@ -68,8 +68,36 @@ var BookingService = (function () {
     return items.sort(function (a, b) { return new Date(b.startTime) - new Date(a.startTime); }).slice(0, 200);
   }
 
+  function cancelBooking(id, actor) {
+    if (!id) throw new Error('booking id is required');
+    var booking = DatabaseService.findByKey('bookings', 'id', id);
+    if (!booking) throw new Error('Booking not found');
+    if (booking.status === 'CANCELLED') return booking;
+
+    booking.status = 'CANCELLED';
+    booking.updatedAt = Utils.nowIso();
+    booking.cancelledAt = booking.updatedAt;
+    booking.approvedBy = actor || booking.approvedBy || '';
+    var calendarDeleteResult = {};
+    if (booking.calendarEventId) {
+      calendarDeleteResult = Utils.safeRun('calendarDelete', function () {
+        return CalendarService.deleteEvent(booking.calendarEventId);
+      });
+    }
+    DatabaseService.upsertByKey('bookings', 'id', id, booking);
+    BookingIndexService.updateStatus(id, 'CANCELLED');
+    AuditLogService.log(actor || 'ADMIN', 'BOOKING_CANCELLED', 'booking', id, {
+      roomId: booking.roomId,
+      startTime: booking.startTime,
+      endTime: booking.endTime,
+      calendarDelete: calendarDeleteResult
+    });
+    return booking;
+  }
+
   return {
     createBooking: createBooking,
-    listBookings: listBookings
+    listBookings: listBookings,
+    cancelBooking: cancelBooking
   };
 })();

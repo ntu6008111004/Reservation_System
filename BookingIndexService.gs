@@ -19,8 +19,17 @@ var BookingIndexService = (function () {
     });
   }
 
+  function updateStatus(bookingId, status) {
+    var item = DatabaseService.findByKey('booking_index', 'bookingId', bookingId);
+    if (!item) return null;
+    item.status = status;
+    DatabaseService.upsertByKey('booking_index', 'bookingId', bookingId, item);
+    return item;
+  }
+
   return {
     add: add,
-    hasConflict: hasConflict
+    hasConflict: hasConflict,
+    updateStatus: updateStatus
   };
 })();

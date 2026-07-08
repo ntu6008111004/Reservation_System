@@ -72,6 +72,12 @@
   const adminOnlyPanels = document.querySelectorAll('[data-admin-only]');
   const diagnosticsButton = document.getElementById('diagnosticsButton');
   const diagnosticsResult = document.getElementById('diagnosticsResult');
+  const adminBookingsButton = document.getElementById('adminBookingsButton');
+  const adminBookingTableBody = document.getElementById('adminBookingTableBody');
+  const adminRoomsButton = document.getElementById('adminRoomsButton');
+  const adminRoomsGrid = document.getElementById('adminRoomsGrid');
+  const adminAuditButton = document.getElementById('adminAuditButton');
+  const adminAuditTableBody = document.getElementById('adminAuditTableBody');
   const adminTotalBookings = document.getElementById('adminTotalBookings');
   const adminOnlineBookings = document.getElementById('adminOnlineBookings');
   const adminOnsiteBookings = document.getElementById('adminOnsiteBookings');
@@ -559,6 +565,9 @@
     });
     diagnosticsButton.disabled = !session;
     adminDashboardButton.disabled = !session;
+    adminBookingsButton.disabled = !session;
+    adminRoomsButton.disabled = !session;
+    adminAuditButton.disabled = !session;
     adminLogoutButton.disabled = !session;
     adminLoginButton.disabled = !!session;
   }
@@ -593,6 +602,115 @@
     } finally {
       hideLoading();
     }
+  }
+
+  function statusLabel(status) {
+    if (status === 'CANCELLED') return 'ยกเลิกแล้ว';
+    if (status === 'CONFIRMED') return 'ยืนยันแล้ว';
+    return status || '-';
+  }
+
+  function renderAdminBookings(items) {
+    if (!items.length) {
+      adminBookingTableBody.innerHTML = '<tr><td colspan="6">ยังไม่มีรายการจอง</td></tr>';
+      return;
+    }
+    adminBookingTableBody.innerHTML = items.map((item) => {
+      const disabled = item.status === 'CANCELLED' ? 'disabled' : '';
+      return `
+        <tr>
+          <td>${formatDateTime(item.startTime)}<br><span class="muted">${formatDateTime(item.endTime)}</span></td>
+          <td>${escapeHtml(item.title)}</td>
+          <td>${escapeHtml(item.roomName)}<br><span class="muted">${meetingTypeLabel(item.meetingType)}</span></td>
+          <td>${escapeHtml(item.requesterName || item.requesterEmail || '-')}</td>
+          <td><span class="badge ${item.status === 'CANCELLED' ? 'danger' : ''}">${statusLabel(item.status)}</span></td>
+          <td><button type="button" class="danger-button admin-cancel-booking" data-booking-id="${escapeHtml(item.id)}" ${disabled}>ยกเลิก</button></td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  async function loadAdminBookings() {
+    adminBookingsButton.disabled = true;
+    try {
+      const items = await callApi('adminBookings', { sessionToken: state.adminSessionToken });
+      renderAdminBookings(items || []);
+    } catch (error) {
+      showResult({ eyebrow: 'Admin Bookings', title: 'โหลดรายการจองไม่สำเร็จ', message: error.message });
+    } finally {
+      adminBookingsButton.disabled = !state.adminSessionToken;
+    }
+  }
+
+  function renderAdminRooms(items) {
+    adminRoomsGrid.innerHTML = items.length ? items.map((room) => {
+      const active = String(room.active) !== 'false';
+      return `
+        <article class="admin-resource-card">
+          <div>
+            <h3>${escapeHtml(room.name)}</h3>
+            <p>${escapeHtml(room.id)} · ${meetingTypeLabel(room.type)} · ${escapeHtml(room.location || '-')}</p>
+            <small>${room.capacity || 0} ที่นั่ง · ${escapeHtml(room.notes || '')}</small>
+          </div>
+          <button type="button" class="${active ? 'danger-button' : ''} admin-toggle-room" data-room-id="${escapeHtml(room.id)}" data-active="${active ? 'false' : 'true'}">
+            ${active ? 'ปิดใช้งาน' : 'เปิดใช้งาน'}
+          </button>
+        </article>
+      `;
+    }).join('') : '<div class="empty">ยังไม่มีทรัพยากร</div>';
+  }
+
+  async function loadAdminRooms() {
+    adminRoomsButton.disabled = true;
+    try {
+      const rooms = await callApi('adminRooms', { sessionToken: state.adminSessionToken });
+      renderAdminRooms(rooms || []);
+    } catch (error) {
+      showResult({ eyebrow: 'Admin Resources', title: 'โหลดทรัพยากรไม่สำเร็จ', message: error.message });
+    } finally {
+      adminRoomsButton.disabled = !state.adminSessionToken;
+    }
+  }
+
+  function renderAuditLogs(items) {
+    if (!items.length) {
+      adminAuditTableBody.innerHTML = '<tr><td colspan="5">ยังไม่มี Audit Log</td></tr>';
+      return;
+    }
+    adminAuditTableBody.innerHTML = items.map((item) => {
+      let detail = item.details || '';
+      try {
+        detail = JSON.stringify(JSON.parse(item.details || '{}'));
+      } catch (error) {}
+      return `
+        <tr>
+          <td>${formatDateTime(item.timestamp)}</td>
+          <td>${escapeHtml(item.actor)}</td>
+          <td>${escapeHtml(item.action)}</td>
+          <td>${escapeHtml(item.entityType)}<br><span class="muted">${escapeHtml(item.entityId)}</span></td>
+          <td><code>${escapeHtml(detail)}</code></td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  async function loadAdminAuditLogs() {
+    adminAuditButton.disabled = true;
+    try {
+      const logs = await callApi('adminAuditLogs', { sessionToken: state.adminSessionToken, limit: 100 });
+      renderAuditLogs(logs || []);
+    } catch (error) {
+      showResult({ eyebrow: 'Audit Log', title: 'โหลด Audit Log ไม่สำเร็จ', message: error.message });
+    } finally {
+      adminAuditButton.disabled = !state.adminSessionToken;
+    }
+  }
+
+  async function loadAdminWorkspace() {
+    await loadAdminDashboard();
+    await loadAdminBookings();
+    await loadAdminRooms();
+    await loadAdminAuditLogs();
   }
 
   async function load() {
@@ -714,7 +832,7 @@
       setAdminLoggedIn(session);
       adminPassword.value = '';
       showToast('เข้าสู่ระบบผู้ดูแลแล้ว', 'success');
-      await loadAdminDashboard();
+      await loadAdminWorkspace();
     } catch (error) {
       showResult({ eyebrow: 'Admin Login', title: 'เข้าสู่ระบบไม่สำเร็จ', message: error.message });
     } finally {
@@ -726,11 +844,62 @@
   adminLogoutButton.addEventListener('click', () => {
     setAdminLoggedIn(null);
     adminRecentBookings.innerHTML = '<div class="empty">เข้าสู่ระบบเพื่อดู Dashboard</div>';
+    adminBookingTableBody.innerHTML = '';
+    adminRoomsGrid.innerHTML = '';
+    adminAuditTableBody.innerHTML = '';
     diagnosticsResult.textContent = 'ยังไม่ได้รัน diagnostics';
     showToast('ออกจากระบบผู้ดูแลแล้ว', 'success');
   });
 
   adminDashboardButton.addEventListener('click', loadAdminDashboard);
+  adminBookingsButton.addEventListener('click', loadAdminBookings);
+  adminRoomsButton.addEventListener('click', loadAdminRooms);
+  adminAuditButton.addEventListener('click', loadAdminAuditLogs);
+
+  adminBookingTableBody.addEventListener('click', async (event) => {
+    const button = event.target.closest('.admin-cancel-booking');
+    if (!button || !state.adminSessionToken) return;
+    if (!window.confirm('ยืนยันยกเลิกรายการจองนี้?')) return;
+    button.disabled = true;
+    showLoading('กำลังยกเลิกรายการจอง...');
+    try {
+      await callApi('adminCancelBooking', { sessionToken: state.adminSessionToken, bookingId: button.dataset.bookingId });
+      await refreshBookings();
+      await loadAdminBookings();
+      await loadAdminDashboard();
+      await loadAdminAuditLogs();
+      showToast('ยกเลิกรายการจองแล้ว', 'success');
+    } catch (error) {
+      showResult({ eyebrow: 'Cancel Booking', title: 'ยกเลิกรายการไม่สำเร็จ', message: error.message });
+    } finally {
+      hideLoading();
+    }
+  });
+
+  adminRoomsGrid.addEventListener('click', async (event) => {
+    const button = event.target.closest('.admin-toggle-room');
+    if (!button || !state.adminSessionToken) return;
+    button.disabled = true;
+    showLoading('กำลังอัปเดตทรัพยากร...');
+    try {
+      await callApi('adminToggleRoom', {
+        sessionToken: state.adminSessionToken,
+        roomId: button.dataset.roomId,
+        active: button.dataset.active
+      });
+      const bootstrap = await callApi('bootstrap');
+      state.rooms = bootstrap.rooms || [];
+      renderRooms();
+      await loadAdminRooms();
+      await loadAdminDashboard();
+      await loadAdminAuditLogs();
+      showToast('อัปเดตทรัพยากรแล้ว', 'success');
+    } catch (error) {
+      showResult({ eyebrow: 'Resources', title: 'อัปเดตทรัพยากรไม่สำเร็จ', message: error.message });
+    } finally {
+      hideLoading();
+    }
+  });
 
   diagnosticsButton.addEventListener('click', async () => {
     diagnosticsButton.disabled = true;
@@ -751,6 +920,13 @@
 
   document.querySelectorAll('.tab-button').forEach((button) => {
     button.addEventListener('click', () => switchTab(button.dataset.tab));
+  });
+
+  document.querySelectorAll('[data-admin-switch-tab]').forEach((button) => {
+    button.addEventListener('click', () => {
+      switchTab(button.dataset.adminSwitchTab);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
   });
 
   document.querySelectorAll('input[name="meetingType"]').forEach((input) => {

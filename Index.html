@@ -347,6 +347,19 @@
           </section>
 
           <section class="panel" data-admin-only hidden>
+            <div class="admin-subnav">
+              <button type="button" class="secondary" data-admin-switch-tab="booking">จองแทนผู้ใช้</button>
+              <button type="button" class="secondary" data-admin-switch-tab="list">ดูรายการผู้ใช้</button>
+              <button type="button" class="secondary" data-admin-switch-tab="calendar">ดูปฏิทินผู้ใช้</button>
+              <a href="#adminDashboardPanel">Dashboard</a>
+              <a href="#adminBookingsPanel">รายการจอง</a>
+              <a href="#adminRoomsPanel">ทรัพยากร</a>
+              <a href="#adminAuditPanel">Audit Log</a>
+              <a href="#adminDiagnosticsPanel">Diagnostics</a>
+            </div>
+          </section>
+
+          <section id="adminDashboardPanel" class="panel" data-admin-only hidden>
             <div class="panel-heading">
               <div>
                 <p class="eyebrow">Dashboard</p>
@@ -364,7 +377,68 @@
             <div id="adminRecentBookings" class="booking-list admin-list"></div>
           </section>
 
-          <section class="panel" data-admin-only hidden>
+          <section id="adminBookingsPanel" class="panel" data-admin-only hidden>
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Booking Management</p>
+                <h2>จัดการรายการจอง</h2>
+              </div>
+              <button type="button" id="adminBookingsButton" disabled>โหลดรายการจอง</button>
+            </div>
+            <p class="helper-text">ผู้ดูแลดูรายการจองทั้งหมดและยกเลิกรายการที่ไม่ต้องการได้ รายการที่ยกเลิกจะปล่อยช่วงเวลาให้จองใหม่</p>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>วันเวลา</th>
+                    <th>หัวข้อ</th>
+                    <th>ห้อง/รูปแบบ</th>
+                    <th>ผู้จอง</th>
+                    <th>สถานะ</th>
+                    <th>จัดการ</th>
+                  </tr>
+                </thead>
+                <tbody id="adminBookingTableBody"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section id="adminRoomsPanel" class="panel" data-admin-only hidden>
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Resources</p>
+                <h2>จัดการห้องและทรัพยากร</h2>
+              </div>
+              <button type="button" id="adminRoomsButton" disabled>โหลดทรัพยากร</button>
+            </div>
+            <div id="adminRoomsGrid" class="admin-resource-grid"></div>
+          </section>
+
+          <section id="adminAuditPanel" class="panel" data-admin-only hidden>
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Audit Log</p>
+                <h2>ประวัติการใช้งานระบบ</h2>
+              </div>
+              <button type="button" id="adminAuditButton" disabled>โหลด Audit</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>เวลา</th>
+                    <th>ผู้ทำรายการ</th>
+                    <th>Action</th>
+                    <th>Entity</th>
+                    <th>รายละเอียด</th>
+                  </tr>
+                </thead>
+                <tbody id="adminAuditTableBody"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section id="adminDiagnosticsPanel" class="panel" data-admin-only hidden>
             <div class="panel-heading">
               <div>
                 <p class="eyebrow">System Diagnostics</p>

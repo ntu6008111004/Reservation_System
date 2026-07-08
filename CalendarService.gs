@@ -47,6 +47,12 @@ var CalendarService = (function () {
     return { calendarId: calendarId(), name: calendar.getName() };
   }
 
+  function deleteEvent(eventId) {
+    if (!eventId) return { skipped: true };
+    Calendar.Events.remove(calendarId(), eventId, { sendUpdates: 'all' });
+    return { deleted: true, eventId: eventId };
+  }
+
   function testMeetCreation() {
     var start = new Date(Date.now() + 60 * 60 * 1000);
     var end = new Date(Date.now() + 75 * 60 * 1000);
@@ -63,6 +69,7 @@ var CalendarService = (function () {
 
   return {
     createOnlineMeeting: createOnlineMeeting,
+    deleteEvent: deleteEvent,
     testAccess: testAccess,
     testMeetCreation: testMeetCreation
   };

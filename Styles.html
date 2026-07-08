@@ -493,6 +493,63 @@
     margin-bottom: 16px;
   }
 
+  .admin-subnav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .admin-subnav a,
+  .admin-subnav button {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 8px 14px;
+    color: #155eef;
+    background: #e8f0ff;
+    border-radius: 999px;
+    font-weight: 900;
+    text-decoration: none;
+    box-shadow: none;
+  }
+
+  .admin-resource-grid {
+    display: grid;
+    gap: 12px;
+  }
+
+  .admin-resource-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 16px;
+    background: #f8fbff;
+    border: 1px solid #dbe5f4;
+    border-radius: 18px;
+  }
+
+  .admin-resource-card h3,
+  .admin-resource-card p {
+    margin: 0;
+  }
+
+  .admin-resource-card p,
+  .admin-resource-card small {
+    color: #667085;
+    font-weight: 700;
+  }
+
+  .danger-button {
+    color: #ffffff;
+    background: #c2410c;
+  }
+
+  .danger-button:hover {
+    background: #9a3412;
+    box-shadow: 0 10px 24px rgba(194, 65, 12, 0.22);
+  }
+
   .booking-list {
     display: grid;
     gap: 12px;
@@ -541,6 +598,11 @@
     font-size: 12px;
     font-weight: 800;
     white-space: nowrap;
+  }
+
+  .badge.danger {
+    color: #b42318;
+    background: #fee4e2;
   }
 
   .meet-link {
