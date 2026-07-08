@@ -20,6 +20,14 @@
   const adminLoginButton = document.getElementById('adminLoginButton');
   const diagnosticsButton = document.getElementById('diagnosticsButton');
   const diagnosticsResult = document.getElementById('diagnosticsResult');
+  const loadingModal = document.getElementById('loadingModal');
+  const loadingText = document.getElementById('loadingText');
+  const resultModal = document.getElementById('resultModal');
+  const resultEyebrow = document.getElementById('resultEyebrow');
+  const resultTitle = document.getElementById('resultTitle');
+  const resultMessage = document.getElementById('resultMessage');
+  const resultActions = document.getElementById('resultActions');
+  const resultCloseButton = document.getElementById('resultCloseButton');
 
   function callApi(action, data) {
     return new Promise((resolve, reject) => {
@@ -41,6 +49,43 @@
     statusEl.className = className || '';
   }
 
+  function showLoading(message) {
+    loadingText.textContent = message || 'กรุณารอสักครู่...';
+    loadingModal.hidden = false;
+  }
+
+  function hideLoading() {
+    loadingModal.hidden = true;
+  }
+
+  function showResult(options) {
+    resultEyebrow.textContent = options.eyebrow || 'Result';
+    resultTitle.textContent = options.title || 'ทำรายการสำเร็จ';
+    resultMessage.textContent = options.message || '';
+    resultActions.innerHTML = '';
+
+    if (options.meetUrl) {
+      const link = document.createElement('a');
+      link.href = options.meetUrl;
+      link.target = '_blank';
+      link.rel = 'noopener';
+      link.textContent = 'เปิด Google Meet';
+      resultActions.appendChild(link);
+    }
+
+    const closeButton = document.createElement('button');
+    closeButton.type = 'button';
+    closeButton.className = 'secondary';
+    closeButton.textContent = 'ปิด';
+    closeButton.addEventListener('click', hideResult);
+    resultActions.appendChild(closeButton);
+    resultModal.hidden = false;
+  }
+
+  function hideResult() {
+    resultModal.hidden = true;
+  }
+
   function showToast(message, type) {
     toastEl.textContent = message;
     toastEl.className = `toast ${type || ''}`.trim();
@@ -60,30 +105,92 @@
       .replace(/'/g, '&#039;');
   }
 
-  function localDateTimeToIso(value) {
-    return new Date(value).toISOString();
+  function pad2(value) {
+    return String(value).padStart(2, '0');
+  }
+
+  function formatDateInput(date) {
+    return `${pad2(date.getDate())}/${pad2(date.getMonth() + 1)}/${date.getFullYear()}`;
+  }
+
+  function formatTimeInput(date) {
+    return `${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
+  }
+
+  function parseThaiDateTime(dateText, timeText, label) {
+    const dateMatch = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(String(dateText || '').trim());
+    const timeMatch = /^([01]\d|2[0-3]):([0-5]\d)$/.exec(String(timeText || '').trim());
+
+    if (!dateMatch) {
+      throw new Error(`${label}: กรุณาใส่วันที่เป็น dd/mm/yyyy เช่น 08/07/2026`);
+    }
+
+    if (!timeMatch) {
+      throw new Error(`${label}: กรุณาใส่เวลาแบบ 24 ชั่วโมง เช่น 09:30 หรือ 14:00`);
+    }
+
+    const day = Number(dateMatch[1]);
+    const month = Number(dateMatch[2]);
+    const year = Number(dateMatch[3]);
+    const hour = Number(timeMatch[1]);
+    const minute = Number(timeMatch[2]);
+    const parsed = new Date(year, month - 1, day, hour, minute, 0, 0);
+
+    if (
+      parsed.getFullYear() !== year ||
+      parsed.getMonth() !== month - 1 ||
+      parsed.getDate() !== day ||
+      parsed.getHours() !== hour ||
+      parsed.getMinutes() !== minute
+    ) {
+      throw new Error(`${label}: วันที่หรือเวลาไม่ถูกต้อง`);
+    }
+
+    return parsed;
+  }
+
+  function applyDateMask(input) {
+    const digits = input.value.replace(/\D/g, '').slice(0, 8);
+    const parts = [];
+    if (digits.length > 0) parts.push(digits.slice(0, 2));
+    if (digits.length > 2) parts.push(digits.slice(2, 4));
+    if (digits.length > 4) parts.push(digits.slice(4, 8));
+    input.value = parts.join('/');
+  }
+
+  function applyTimeMask(input) {
+    const digits = input.value.replace(/\D/g, '').slice(0, 4);
+    input.value = digits.length > 2 ? `${digits.slice(0, 2)}:${digits.slice(2, 4)}` : digits;
   }
 
   function formatDateTime(value) {
     if (!value) return '-';
-    return new Date(value).toLocaleString('th-TH', {
-      dateStyle: 'medium',
-      timeStyle: 'short'
-    });
+    const date = new Date(value);
+    return `${formatDateInput(date)} ${formatTimeInput(date)} น.`;
   }
 
   function setDefaultTimes() {
-    const now = new Date();
-    now.setMinutes(now.getMinutes() < 30 ? 30 : 60, 0, 0);
-    const end = new Date(now.getTime() + 60 * 60 * 1000);
-    form.elements.startTime.value = toDatetimeLocal(now);
-    form.elements.endTime.value = toDatetimeLocal(end);
+    const start = new Date();
+    start.setMinutes(start.getMinutes() < 30 ? 30 : 60, 0, 0);
+    const end = new Date(start.getTime() + 60 * 60 * 1000);
+    form.elements.startDate.value = formatDateInput(start);
+    form.elements.startClock.value = formatTimeInput(start);
+    form.elements.endDate.value = formatDateInput(end);
+    form.elements.endClock.value = formatTimeInput(end);
   }
 
-  function toDatetimeLocal(date) {
-    const offset = date.getTimezoneOffset();
-    const local = new Date(date.getTime() - offset * 60000);
-    return local.toISOString().slice(0, 16);
+  function buildBookingPayload() {
+    const data = Object.fromEntries(new FormData(form).entries());
+    const start = parseThaiDateTime(data.startDate, data.startClock, 'เวลาเริ่ม');
+    const end = parseThaiDateTime(data.endDate, data.endClock, 'เวลาสิ้นสุด');
+
+    data.startTime = start.toISOString();
+    data.endTime = end.toISOString();
+    delete data.startDate;
+    delete data.startClock;
+    delete data.endDate;
+    delete data.endClock;
+    return data;
   }
 
   function renderRooms() {
@@ -118,6 +225,7 @@
   }
 
   async function load() {
+    showLoading('กำลังโหลดข้อมูลระบบ...');
     try {
       setDefaultTimes();
       const bootstrap = await callApi('bootstrap');
@@ -127,36 +235,66 @@
       setStatus(`พร้อมใช้งาน · เจ้าของระบบ ${bootstrap.settings.ownerEmail}`, 'success');
     } catch (error) {
       setStatus(error.message, 'error');
-      showToast(error.message, 'error');
+      showResult({
+        eyebrow: 'Load Error',
+        title: 'โหลดระบบไม่สำเร็จ',
+        message: error.message
+      });
+    } finally {
+      hideLoading();
     }
   }
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
-    const data = Object.fromEntries(new FormData(form).entries());
-    data.startTime = localDateTimeToIso(data.startTime);
-    data.endTime = localDateTimeToIso(data.endTime);
+    let data;
+    try {
+      data = buildBookingPayload();
+    } catch (error) {
+      showResult({
+        eyebrow: 'ตรวจข้อมูล',
+        title: 'กรุณาตรวจวันที่และเวลา',
+        message: error.message
+      });
+      return;
+    }
+
     submitButton.disabled = true;
     submitButton.textContent = 'กำลังบันทึก...';
     setStatus('กำลังบันทึกการจอง...', '');
+    showLoading(data.meetingType === 'ONLINE' ? 'กำลังจองและสร้าง Google Meet...' : 'กำลังบันทึกการจอง...');
 
     try {
       const booking = await callApi('createBooking', data);
       form.reset();
       setDefaultTimes();
       await refreshBookings();
+
       if (booking.meetUrl) {
-        setStatus(`จองสำเร็จและสร้าง Google Meet แล้ว`, 'success');
-        showToast('จองสำเร็จ พร้อม Google Meet URL', 'success');
-        window.open(booking.meetUrl, '_blank', 'noopener');
+        setStatus('จองสำเร็จและสร้าง Google Meet แล้ว', 'success');
+        showResult({
+          eyebrow: 'Booking Confirmed',
+          title: 'จองสำเร็จ พร้อม Google Meet',
+          message: `ระบบสร้างรายการจอง ${formatDateTime(booking.startTime)} และบันทึก Meet URL ลง Google Sheet แล้ว`,
+          meetUrl: booking.meetUrl
+        });
       } else {
         setStatus('จองสำเร็จ', 'success');
-        showToast('จองห้องประชุมสำเร็จ', 'success');
+        showResult({
+          eyebrow: 'Booking Confirmed',
+          title: 'จองห้องประชุมสำเร็จ',
+          message: `ระบบบันทึกรายการจอง ${formatDateTime(booking.startTime)} เรียบร้อยแล้ว`
+        });
       }
     } catch (error) {
       setStatus(error.message, 'error');
-      showToast(error.message, 'error');
+      showResult({
+        eyebrow: 'Booking Error',
+        title: 'จองไม่สำเร็จ',
+        message: error.message
+      });
     } finally {
+      hideLoading();
       submitButton.disabled = false;
       submitButton.textContent = 'จองห้องประชุม';
     }
@@ -169,12 +307,18 @@
 
   refreshButton.addEventListener('click', async () => {
     refreshButton.disabled = true;
+    showLoading('กำลังโหลดรายการล่าสุด...');
     try {
       await refreshBookings();
       showToast('โหลดรายการล่าสุดแล้ว', 'success');
     } catch (error) {
-      showToast(error.message, 'error');
+      showResult({
+        eyebrow: 'Refresh Error',
+        title: 'โหลดรายการไม่สำเร็จ',
+        message: error.message
+      });
     } finally {
+      hideLoading();
       refreshButton.disabled = false;
     }
   });
@@ -182,6 +326,7 @@
   adminLoginButton.addEventListener('click', async () => {
     adminLoginButton.disabled = true;
     diagnosticsResult.textContent = '';
+    showLoading('กำลังเข้าสู่ระบบผู้ดูแล...');
     try {
       const session = await callApi('adminLogin', {
         username: adminUsername.value,
@@ -192,8 +337,13 @@
       adminPassword.value = '';
       showToast('เข้าสู่ระบบผู้ดูแลแล้ว', 'success');
     } catch (error) {
-      showToast(error.message, 'error');
+      showResult({
+        eyebrow: 'Admin Login',
+        title: 'เข้าสู่ระบบไม่สำเร็จ',
+        message: error.message
+      });
     } finally {
+      hideLoading();
       adminLoginButton.disabled = false;
     }
   });
@@ -201,17 +351,37 @@
   diagnosticsButton.addEventListener('click', async () => {
     diagnosticsButton.disabled = true;
     diagnosticsResult.textContent = 'กำลังตรวจระบบ...';
+    showLoading('กำลังตรวจระบบ...');
     try {
       const report = await callApi('diagnostics', {
         sessionToken: state.adminSessionToken
       });
       diagnosticsResult.textContent = JSON.stringify(report, null, 2);
+      showToast(report.ok ? 'Diagnostics ผ่านแล้ว' : 'Diagnostics พบรายการที่ต้องตรวจต่อ', report.ok ? 'success' : 'error');
     } catch (error) {
       diagnosticsResult.textContent = error.message;
-      showToast(error.message, 'error');
+      showResult({
+        eyebrow: 'Diagnostics',
+        title: 'ตรวจระบบไม่สำเร็จ',
+        message: error.message
+      });
     } finally {
+      hideLoading();
       diagnosticsButton.disabled = false;
     }
+  });
+
+  document.querySelectorAll('#startDate, #endDate').forEach((input) => {
+    input.addEventListener('input', () => applyDateMask(input));
+  });
+
+  document.querySelectorAll('#startClock, #endClock').forEach((input) => {
+    input.addEventListener('input', () => applyTimeMask(input));
+  });
+
+  resultCloseButton.addEventListener('click', hideResult);
+  resultModal.addEventListener('click', (event) => {
+    if (event.target === resultModal) hideResult();
   });
 
   load();

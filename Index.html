@@ -31,10 +31,10 @@
               <p class="eyebrow">New Booking</p>
               <h2>สร้างรายการจอง</h2>
             </div>
-            <span class="pill">Asia/Bangkok</span>
+            <span class="pill">วันที่ dd/mm/yyyy · เวลา 24 ชม.</span>
           </div>
 
-          <form id="bookingForm" class="booking-form">
+          <form id="bookingForm" class="booking-form" novalidate>
             <div class="field full">
               <label for="roomSelect">ห้องประชุม / ทรัพยากร</label>
               <select name="roomId" id="roomSelect" required></select>
@@ -55,14 +55,38 @@
               <input id="requesterEmail" name="requesterEmail" type="email" placeholder="name@company.com" required>
             </div>
 
-            <div class="field">
-              <label for="startTime">เริ่ม</label>
-              <input id="startTime" name="startTime" type="datetime-local" required>
+            <div class="time-group full">
+              <div class="time-group-title">
+                <strong>วันและเวลาเริ่ม</strong>
+                <span>รูปแบบ dd/mm/yyyy และ HH:mm</span>
+              </div>
+              <div class="time-fields">
+                <div class="field">
+                  <label for="startDate">วันที่เริ่ม</label>
+                  <input id="startDate" name="startDate" inputmode="numeric" placeholder="dd/mm/yyyy" maxlength="10" autocomplete="off" required>
+                </div>
+                <div class="field">
+                  <label for="startClock">เวลาเริ่ม</label>
+                  <input id="startClock" name="startClock" inputmode="numeric" placeholder="HH:mm" maxlength="5" autocomplete="off" required>
+                </div>
+              </div>
             </div>
 
-            <div class="field">
-              <label for="endTime">สิ้นสุด</label>
-              <input id="endTime" name="endTime" type="datetime-local" required>
+            <div class="time-group full">
+              <div class="time-group-title">
+                <strong>วันและเวลาสิ้นสุด</strong>
+                <span>ใช้เวลา 24 ชั่วโมง เช่น 09:30, 14:00</span>
+              </div>
+              <div class="time-fields">
+                <div class="field">
+                  <label for="endDate">วันที่สิ้นสุด</label>
+                  <input id="endDate" name="endDate" inputmode="numeric" placeholder="dd/mm/yyyy" maxlength="10" autocomplete="off" required>
+                </div>
+                <div class="field">
+                  <label for="endClock">เวลาสิ้นสุด</label>
+                  <input id="endClock" name="endClock" inputmode="numeric" placeholder="HH:mm" maxlength="5" autocomplete="off" required>
+                </div>
+              </div>
             </div>
 
             <div class="meeting-toggle full" role="radiogroup" aria-label="รูปแบบประชุม">
@@ -140,6 +164,27 @@
         </aside>
       </section>
     </main>
+
+    <div id="loadingModal" class="modal-backdrop" hidden aria-live="polite">
+      <div class="modal loading-dialog" role="dialog" aria-modal="true" aria-labelledby="loadingTitle">
+        <span class="spinner"></span>
+        <div>
+          <h2 id="loadingTitle">กำลังทำรายการ</h2>
+          <p id="loadingText">กรุณารอสักครู่...</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="resultModal" class="modal-backdrop" hidden>
+      <div class="modal result-dialog" role="dialog" aria-modal="true" aria-labelledby="resultTitle">
+        <button type="button" class="modal-close" id="resultCloseButton" aria-label="ปิด">×</button>
+        <p class="eyebrow" id="resultEyebrow">Result</p>
+        <h2 id="resultTitle">ทำรายการสำเร็จ</h2>
+        <p id="resultMessage"></p>
+        <div id="resultActions" class="modal-actions"></div>
+      </div>
+    </div>
+
     <div id="toast" class="toast" hidden></div>
     <?!= include('Client'); ?>
   </body>
