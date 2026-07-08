@@ -125,6 +125,7 @@ function runSystemDiagnostics() {
     Utils.safeRun('spreadsheetId', function () { return getSpreadsheetId(); }),
     Utils.safeRun('databaseSchema', function () { return verifyDatabaseSchema(); }),
     Utils.safeRun('settings', function () { return DatabaseService.listObjects('settings').length > 0; }),
+    Utils.safeRun('sheetCapacity', function () { return DatabaseService.sheetCapacityReport(); }),
     Utils.safeRun('calendarAccess', function () { return CalendarService.testAccess(); }),
     Utils.safeRun('calendarMeetCreation', function () { return CalendarService.testMeetCreation(); }),
     Utils.safeRun('cacheService', function () { return CacheLayer.test(); }),

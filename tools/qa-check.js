@@ -19,7 +19,7 @@ new Function(scriptMatch[1]);
 
 for (const file of ['Index.html', 'Client.html', 'Styles.html']) {
   const content = read(file);
-  if (/�|à¸|à¹/.test(content)) fail(`${file} may contain broken Thai encoding`);
+  if (/\uFFFD|\u00E0\u00B8|\u00E0\u00B9/.test(content)) fail(`${file} may contain broken Thai encoding`);
 }
 
 const index = read('Index.html');
@@ -51,5 +51,12 @@ if (!index.includes('data-admin-only hidden')) fail('Admin panels must be hidden
 if (!styles.includes('@media (max-width: 520px)')) fail('Missing small-device responsive breakpoint');
 if (!styles.includes('overflow-wrap: anywhere')) fail('Missing long-text overflow protection');
 if (!styles.includes('max-height: min(92vh, 760px)')) fail('Modal should be scrollable on short screens');
+
+const databaseService = read('DatabaseService.gs');
+const setupService = read('Setup.gs');
+if (!databaseService.includes('ROW_BUFFER_THRESHOLD = 100')) fail('Missing sheet row buffer threshold');
+if (!databaseService.includes('ROW_GROWTH_SIZE = 5000')) fail('Missing sheet row growth size');
+if (!databaseService.includes('ensureRowCapacity(name, sheet)')) fail('appendObject must check sheet row capacity');
+if (!setupService.includes("Utils.safeRun('sheetCapacity'")) fail('Diagnostics must include sheet capacity report');
 
 console.log(`QA checks passed (${gasFiles.length} Apps Script files, client JS, Thai encoding, required UI ids, responsive guards).`);

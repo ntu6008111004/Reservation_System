@@ -10,6 +10,8 @@ var DatabaseService = (function () {
     rooms: ['id', 'name', 'capacity', 'location', 'type', 'active', 'notes'],
     system_meta: ['key', 'value', 'updatedAt']
   };
+  var ROW_BUFFER_THRESHOLD = 100;
+  var ROW_GROWTH_SIZE = 5000;
 
   function spreadsheet() {
     return SpreadsheetApp.openById(getSpreadsheetId());
@@ -54,8 +56,44 @@ var DatabaseService = (function () {
       .map(function (row) { return rowToObject(name, row); });
   }
 
+  function sheetCapacity(name, sheet) {
+    sheet = sheet || ensureSheet(name);
+    var maxRows = sheet.getMaxRows();
+    var lastRow = sheet.getLastRow();
+    return {
+      sheet: name,
+      maxRows: maxRows,
+      usedRows: lastRow,
+      remainingRows: maxRows - lastRow,
+      threshold: ROW_BUFFER_THRESHOLD,
+      growthSize: ROW_GROWTH_SIZE
+    };
+  }
+
+  function ensureRowCapacity(name, sheet) {
+    var capacity = sheetCapacity(name, sheet);
+    if (capacity.remainingRows <= ROW_BUFFER_THRESHOLD) {
+      sheet.insertRowsAfter(capacity.maxRows, ROW_GROWTH_SIZE);
+      capacity.expanded = true;
+      capacity.addedRows = ROW_GROWTH_SIZE;
+      capacity.maxRows += ROW_GROWTH_SIZE;
+      capacity.remainingRows += ROW_GROWTH_SIZE;
+    } else {
+      capacity.expanded = false;
+      capacity.addedRows = 0;
+    }
+    return capacity;
+  }
+
+  function sheetCapacityReport() {
+    return Object.keys(SHEETS).map(function (name) {
+      return sheetCapacity(name);
+    });
+  }
+
   function appendObject(name, object) {
     var sheet = ensureSheet(name);
+    ensureRowCapacity(name, sheet);
     var row = headers(name).map(function (key) { return object[key] === undefined ? '' : object[key]; });
     sheet.appendRow(row);
     return object;
@@ -96,6 +134,9 @@ var DatabaseService = (function () {
     listObjects: listObjects,
     appendObject: appendObject,
     clearObjects: clearObjects,
+    sheetCapacity: sheetCapacity,
+    ensureRowCapacity: ensureRowCapacity,
+    sheetCapacityReport: sheetCapacityReport,
     upsertByKey: upsertByKey,
     findByKey: findByKey
   };

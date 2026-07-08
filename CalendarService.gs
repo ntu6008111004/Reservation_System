@@ -64,6 +64,9 @@ var CalendarService = (function () {
       endTime: end,
       notes: 'Diagnostic event can be deleted.'
     });
+    result.cleanup = Utils.safeRun('deleteDiagnosticEvent', function () {
+      return deleteEvent(result.eventId);
+    });
     return result;
   }
 
