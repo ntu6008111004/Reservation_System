@@ -78,6 +78,9 @@
   const adminRoomsGrid = document.getElementById('adminRoomsGrid');
   const adminAuditButton = document.getElementById('adminAuditButton');
   const adminAuditTableBody = document.getElementById('adminAuditTableBody');
+  const adminFeatureSettingsSaveButton = document.getElementById('adminFeatureSettingsSaveButton');
+  const emailNotificationsToggle = document.getElementById('emailNotificationsToggle');
+  const calendarInviteRequesterToggle = document.getElementById('calendarInviteRequesterToggle');
   const adminClearBookingDataButton = document.getElementById('adminClearBookingDataButton');
   const adminTotalBookings = document.getElementById('adminTotalBookings');
   const adminOnlineBookings = document.getElementById('adminOnlineBookings');
@@ -570,6 +573,7 @@
     adminBookingsButton.disabled = !session;
     adminRoomsButton.disabled = !session;
     adminAuditButton.disabled = !session;
+    adminFeatureSettingsSaveButton.disabled = !session;
     adminClearBookingDataButton.disabled = !session;
     adminLogoutButton.disabled = !session;
     adminLoginButton.disabled = !!session;
@@ -710,10 +714,25 @@
     }
   }
 
+  function renderFeatureSettings(settings) {
+    emailNotificationsToggle.checked = !!settings.emailNotificationsEnabled;
+    calendarInviteRequesterToggle.checked = !!settings.calendarInviteRequesterEnabled;
+  }
+
+  async function loadAdminFeatureSettings() {
+    try {
+      const settings = await callApi('adminFeatureSettings', { sessionToken: state.adminSessionToken });
+      renderFeatureSettings(settings || {});
+    } catch (error) {
+      showResult({ eyebrow: 'Feature Settings', title: 'โหลดการตั้งค่าไม่สำเร็จ', message: error.message });
+    }
+  }
+
   async function loadAdminWorkspace() {
     await loadAdminDashboard();
     await loadAdminBookings();
     await loadAdminRooms();
+    await loadAdminFeatureSettings();
     await loadAdminAuditLogs();
   }
 
@@ -859,6 +878,26 @@
   adminBookingsButton.addEventListener('click', loadAdminBookings);
   adminRoomsButton.addEventListener('click', loadAdminRooms);
   adminAuditButton.addEventListener('click', loadAdminAuditLogs);
+  adminFeatureSettingsSaveButton.addEventListener('click', async () => {
+    if (!state.adminSessionToken) return;
+    adminFeatureSettingsSaveButton.disabled = true;
+    showLoading('กำลังบันทึกการตั้งค่า...');
+    try {
+      const settings = await callApi('adminUpdateFeatureSettings', {
+        sessionToken: state.adminSessionToken,
+        emailNotificationsEnabled: emailNotificationsToggle.checked,
+        calendarInviteRequesterEnabled: calendarInviteRequesterToggle.checked
+      });
+      renderFeatureSettings(settings || {});
+      await loadAdminAuditLogs();
+      showToast('บันทึกการตั้งค่าแล้ว', 'success');
+    } catch (error) {
+      showResult({ eyebrow: 'Feature Settings', title: 'บันทึกการตั้งค่าไม่สำเร็จ', message: error.message });
+    } finally {
+      hideLoading();
+      adminFeatureSettingsSaveButton.disabled = !state.adminSessionToken;
+    }
+  });
   adminClearBookingDataButton.addEventListener('click', async () => {
     if (!state.adminSessionToken) return;
     const confirmed = window.confirm('ยืนยันล้างข้อมูลจองทั้งหมด? ระบบจะลบ bookings และ booking_index แต่ไม่ลบ admin, rooms, settings หรือ schema');

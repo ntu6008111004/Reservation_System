@@ -36,6 +36,15 @@ function routeApi(action, data) {
       case 'adminAuditLogs':
         AdminAuthService.requireSession(data.sessionToken);
         return ResponseService.success(AuditLogService.listLatest(data.limit || 100));
+      case 'adminFeatureSettings':
+        AdminAuthService.requireSession(data.sessionToken);
+        return ResponseService.success(SettingsService.adminFeatureSettings());
+      case 'adminUpdateFeatureSettings':
+        var featureSession = AdminAuthService.requireSession(data.sessionToken);
+        SettingsService.set('email_notifications_enabled', data.emailNotificationsEnabled ? 'true' : 'false', 'Keep email notifications disabled until users are ready.');
+        SettingsService.set('calendar_invite_requester_enabled', data.calendarInviteRequesterEnabled ? 'true' : 'false', 'Invite requester email to Calendar/Meet only when admins enable it.');
+        AuditLogService.log(featureSession.username, 'FEATURE_SETTINGS_UPDATED', 'settings', 'admin_features', SettingsService.adminFeatureSettings());
+        return ResponseService.success(SettingsService.adminFeatureSettings());
       case 'adminClearBookingData':
         var clearSession = AdminAuthService.requireSession(data.sessionToken);
         return ResponseService.success(clearBookingDataForTesting(clearSession.username));

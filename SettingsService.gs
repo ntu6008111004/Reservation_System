@@ -15,6 +15,23 @@ var SettingsService = (function () {
     }
   }
 
+  function set(key, value, description) {
+    DatabaseService.upsertByKey('settings', 'key', key, {
+      key: key,
+      value: String(value),
+      description: description || '',
+      updatedAt: Utils.nowIso()
+    });
+    return get(key, '');
+  }
+
+  function adminFeatureSettings() {
+    return {
+      emailNotificationsEnabled: get('email_notifications_enabled', 'false') === 'true',
+      calendarInviteRequesterEnabled: get('calendar_invite_requester_enabled', 'false') === 'true'
+    };
+  }
+
   function publicSettings() {
     return {
       ownerEmail: PropertiesService.getScriptProperties().getProperty('OWNER_EMAIL') || 'tsmile.it.official@gmail.com',
@@ -25,7 +42,9 @@ var SettingsService = (function () {
 
   return {
     get: get,
+    set: set,
     setDefault: setDefault,
+    adminFeatureSettings: adminFeatureSettings,
     publicSettings: publicSettings
   };
 })();

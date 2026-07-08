@@ -57,6 +57,7 @@ function seedSettings() {
   SettingsService.setDefault('online_meeting_provider', 'google_meet', 'Online meetings use Google Calendar conference data.');
   SettingsService.setDefault('web_app_access', 'Anyone with the link', 'Recommended lightweight access mode.');
   SettingsService.setDefault('email_notifications_enabled', 'false', 'Keep email notifications disabled until users are ready.');
+  SettingsService.setDefault('calendar_invite_requester_enabled', 'false', 'Invite requester email to Calendar/Meet only when admins enable it.');
 }
 
 function seedRooms() {

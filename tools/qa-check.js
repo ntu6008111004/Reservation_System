@@ -35,6 +35,9 @@ const requiredIds = [
   'adminRoomsGrid',
   'adminAuditButton',
   'adminAuditTableBody',
+  'adminFeatureSettingsSaveButton',
+  'emailNotificationsToggle',
+  'calendarInviteRequesterToggle',
   'adminClearBookingDataButton',
   'diagnosticsButton'
 ];
@@ -61,9 +64,11 @@ if (!databaseService.includes('ROW_GROWTH_SIZE = 5000')) fail('Missing sheet row
 if (!databaseService.includes('ensureRowCapacity(name, sheet)')) fail('appendObject must check sheet row capacity');
 if (!setupService.includes("Utils.safeRun('sheetCapacity'")) fail('Diagnostics must include sheet capacity report');
 if (!setupService.includes("email_notifications_enabled', 'false'")) fail('Email notifications must default to disabled');
+if (!setupService.includes("calendar_invite_requester_enabled', 'false'")) fail('Calendar requester invites must default to disabled');
 if (!setupService.includes("Utils.safeRun('emailNotifications'")) fail('Diagnostics must include email notification status');
 if (!bookingService.includes('EmailNotificationService.bookingCreated')) fail('Booking creation should be wired to dormant email notifications');
 if (!bookingService.includes('EmailNotificationService.bookingCancelled')) fail('Booking cancellation should be wired to dormant email notifications');
 if (!emailService.includes("SettingsService.get('email_notifications_enabled', 'false')")) fail('Email notification service must respect disabled setting');
+if (!read('CalendarService.gs').includes("SettingsService.get('calendar_invite_requester_enabled', 'false')")) fail('Calendar requester invite must respect disabled setting');
 
 console.log(`QA checks passed (${gasFiles.length} Apps Script files, client JS, Thai encoding, required UI ids, responsive guards).`);

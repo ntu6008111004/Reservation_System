@@ -354,6 +354,7 @@
               <a href="#adminDashboardPanel">Dashboard</a>
               <a href="#adminBookingsPanel">รายการจอง</a>
               <a href="#adminRoomsPanel">ทรัพยากร</a>
+              <a href="#adminFeatureSettingsPanel">ตั้งค่าฟีเจอร์</a>
               <a href="#adminAuditPanel">Audit Log</a>
               <a href="#adminDiagnosticsPanel">Diagnostics</a>
               <a href="#adminMaintenancePanel">Maintenance</a>
@@ -414,6 +415,32 @@
               <button type="button" id="adminRoomsButton" disabled>โหลดทรัพยากร</button>
             </div>
             <div id="adminRoomsGrid" class="admin-resource-grid"></div>
+          </section>
+
+          <section id="adminFeatureSettingsPanel" class="panel" data-admin-only hidden>
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Feature Settings</p>
+                <h2>ตั้งค่าฟีเจอร์ที่เตรียมไว้</h2>
+              </div>
+              <button type="button" id="adminFeatureSettingsSaveButton" disabled>บันทึกการตั้งค่า</button>
+            </div>
+            <div class="feature-toggle-list">
+              <label class="feature-toggle">
+                <input id="emailNotificationsToggle" type="checkbox">
+                <span>
+                  <strong>ส่งอีเมลแจ้งเตือนการจอง/ยกเลิก</strong>
+                  <small>ค่าเริ่มต้นปิดไว้ก่อน เหมาะเปิดใช้ภายหลังเมื่อผู้ใช้คุ้นกับระบบแล้ว และส่งเฉพาะคนที่กรอกอีเมล</small>
+                </span>
+              </label>
+              <label class="feature-toggle">
+                <input id="calendarInviteRequesterToggle" type="checkbox">
+                <span>
+                  <strong>เชิญอีเมลผู้จองเข้า Google Meet</strong>
+                  <small>เจ้าของระบบยังเป็นผู้สร้าง Meet หลัก แต่ถ้าเปิดฟีเจอร์นี้ ระบบจะเชิญอีเมลที่ผู้จองกรอกเป็นผู้ร่วมประชุม</small>
+                </span>
+              </label>
+            </div>
           </section>
 
           <section id="adminAuditPanel" class="panel" data-admin-only hidden>

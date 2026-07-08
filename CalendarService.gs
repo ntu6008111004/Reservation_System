@@ -6,7 +6,8 @@ var CalendarService = (function () {
   function createOnlineMeeting(input) {
     var ownerEmail = PropertiesService.getScriptProperties().getProperty('OWNER_EMAIL') || 'tsmile.it.official@gmail.com';
     var attendees = [{ email: ownerEmail }];
-    if (input.requesterEmail) attendees.push({ email: input.requesterEmail });
+    var inviteRequester = String(SettingsService.get('calendar_invite_requester_enabled', 'false')) === 'true';
+    if (inviteRequester && input.requesterEmail) attendees.push({ email: input.requesterEmail });
     var resource = {
       summary: input.title,
       description: 'Reservation booking ID: ' + input.id + '\n' + (input.notes || ''),
