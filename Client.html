@@ -1,14 +1,36 @@
 <script>
-  const state = { rooms: [] };
+  const state = {
+    rooms: [],
+    bookings: [],
+    adminSessionToken: ''
+  };
+
   const statusEl = document.getElementById('status');
   const roomSelect = document.getElementById('roomSelect');
   const bookingsEl = document.getElementById('bookings');
   const form = document.getElementById('bookingForm');
+  const submitButton = document.getElementById('submitButton');
+  const resetButton = document.getElementById('resetButton');
+  const refreshButton = document.getElementById('refreshButton');
+  const toastEl = document.getElementById('toast');
+  const metricBookings = document.getElementById('metricBookings');
+  const metricRooms = document.getElementById('metricRooms');
+  const adminUsername = document.getElementById('adminUsername');
+  const adminPassword = document.getElementById('adminPassword');
+  const adminLoginButton = document.getElementById('adminLoginButton');
+  const diagnosticsButton = document.getElementById('diagnosticsButton');
+  const diagnosticsResult = document.getElementById('diagnosticsResult');
 
   function callApi(action, data) {
     return new Promise((resolve, reject) => {
       google.script.run
-        .withSuccessHandler((response) => response && response.ok ? resolve(response.data) : reject(new Error(response.error.message)))
+        .withSuccessHandler((response) => {
+          if (response && response.ok) {
+            resolve(response.data);
+          } else {
+            reject(new Error(response && response.error ? response.error.message : 'เกิดข้อผิดพลาดจากระบบ'));
+          }
+        })
         .withFailureHandler(reject)
         .api(action, data || {});
     });
@@ -19,33 +41,93 @@
     statusEl.className = className || '';
   }
 
+  function showToast(message, type) {
+    toastEl.textContent = message;
+    toastEl.className = `toast ${type || ''}`.trim();
+    toastEl.hidden = false;
+    window.clearTimeout(showToast.timer);
+    showToast.timer = window.setTimeout(() => {
+      toastEl.hidden = true;
+    }, 5200);
+  }
+
+  function escapeHtml(value) {
+    return String(value || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
   function localDateTimeToIso(value) {
     return new Date(value).toISOString();
   }
 
+  function formatDateTime(value) {
+    if (!value) return '-';
+    return new Date(value).toLocaleString('th-TH', {
+      dateStyle: 'medium',
+      timeStyle: 'short'
+    });
+  }
+
+  function setDefaultTimes() {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() < 30 ? 30 : 60, 0, 0);
+    const end = new Date(now.getTime() + 60 * 60 * 1000);
+    form.elements.startTime.value = toDatetimeLocal(now);
+    form.elements.endTime.value = toDatetimeLocal(end);
+  }
+
+  function toDatetimeLocal(date) {
+    const offset = date.getTimezoneOffset();
+    const local = new Date(date.getTime() - offset * 60000);
+    return local.toISOString().slice(0, 16);
+  }
+
   function renderRooms() {
-    roomSelect.innerHTML = state.rooms.map((room) => `<option value="${room.id}">${room.name}</option>`).join('');
+    roomSelect.innerHTML = state.rooms.map((room) => {
+      const capacity = room.capacity ? ` · ${room.capacity} ที่นั่ง` : '';
+      return `<option value="${escapeHtml(room.id)}">${escapeHtml(room.name)}${capacity}</option>`;
+    }).join('');
+    metricRooms.textContent = state.rooms.length;
   }
 
   function renderBookings(items) {
-    bookingsEl.innerHTML = items.length ? items.map((item) => `
-      <article class="item">
-        <strong>${item.title}</strong>
-        <div class="muted">${item.roomName} · ${new Date(item.startTime).toLocaleString('th-TH')}</div>
-        ${item.meetUrl ? `<a href="${item.meetUrl}" target="_blank">เปิด Google Meet</a>` : ''}
-      </article>
-    `).join('') : '<p class="muted">ยังไม่มีรายการจอง</p>';
+    metricBookings.textContent = items.length;
+    bookingsEl.innerHTML = items.length ? items.slice(0, 8).map((item) => {
+      const typeLabel = item.meetingType === 'ONLINE' ? 'Online' : 'Onsite';
+      return `
+        <article class="booking-card">
+          <header>
+            <h3>${escapeHtml(item.title)}</h3>
+            <span class="badge">${typeLabel}</span>
+          </header>
+          <p>${escapeHtml(item.roomName)}<br>${formatDateTime(item.startTime)} - ${formatDateTime(item.endTime)}</p>
+          <p>ผู้จอง: ${escapeHtml(item.requesterName || item.requesterEmail)}</p>
+          ${item.meetUrl ? `<a class="meet-link" href="${escapeHtml(item.meetUrl)}" target="_blank" rel="noopener">เปิด Google Meet</a>` : ''}
+        </article>
+      `;
+    }).join('') : '<div class="empty">ยังไม่มีรายการจองล่าสุด</div>';
+  }
+
+  async function refreshBookings() {
+    state.bookings = await callApi('listBookings');
+    renderBookings(state.bookings);
   }
 
   async function load() {
     try {
+      setDefaultTimes();
       const bootstrap = await callApi('bootstrap');
       state.rooms = bootstrap.rooms || [];
       renderRooms();
-      renderBookings(await callApi('listBookings'));
-      setStatus(`พร้อมใช้งาน เจ้าของระบบ: ${bootstrap.settings.ownerEmail}`, 'success');
+      await refreshBookings();
+      setStatus(`พร้อมใช้งาน · เจ้าของระบบ ${bootstrap.settings.ownerEmail}`, 'success');
     } catch (error) {
       setStatus(error.message, 'error');
+      showToast(error.message, 'error');
     }
   }
 
@@ -54,14 +136,81 @@
     const data = Object.fromEntries(new FormData(form).entries());
     data.startTime = localDateTimeToIso(data.startTime);
     data.endTime = localDateTimeToIso(data.endTime);
+    submitButton.disabled = true;
+    submitButton.textContent = 'กำลังบันทึก...';
     setStatus('กำลังบันทึกการจอง...', '');
+
     try {
       const booking = await callApi('createBooking', data);
       form.reset();
-      renderBookings(await callApi('listBookings'));
-      setStatus(booking.meetUrl ? `จองสำเร็จ และสร้าง Google Meet แล้ว: ${booking.meetUrl}` : 'จองสำเร็จ', 'success');
+      setDefaultTimes();
+      await refreshBookings();
+      if (booking.meetUrl) {
+        setStatus(`จองสำเร็จและสร้าง Google Meet แล้ว`, 'success');
+        showToast('จองสำเร็จ พร้อม Google Meet URL', 'success');
+        window.open(booking.meetUrl, '_blank', 'noopener');
+      } else {
+        setStatus('จองสำเร็จ', 'success');
+        showToast('จองห้องประชุมสำเร็จ', 'success');
+      }
     } catch (error) {
       setStatus(error.message, 'error');
+      showToast(error.message, 'error');
+    } finally {
+      submitButton.disabled = false;
+      submitButton.textContent = 'จองห้องประชุม';
+    }
+  });
+
+  resetButton.addEventListener('click', () => {
+    form.reset();
+    setDefaultTimes();
+  });
+
+  refreshButton.addEventListener('click', async () => {
+    refreshButton.disabled = true;
+    try {
+      await refreshBookings();
+      showToast('โหลดรายการล่าสุดแล้ว', 'success');
+    } catch (error) {
+      showToast(error.message, 'error');
+    } finally {
+      refreshButton.disabled = false;
+    }
+  });
+
+  adminLoginButton.addEventListener('click', async () => {
+    adminLoginButton.disabled = true;
+    diagnosticsResult.textContent = '';
+    try {
+      const session = await callApi('adminLogin', {
+        username: adminUsername.value,
+        password: adminPassword.value
+      });
+      state.adminSessionToken = session.sessionToken;
+      diagnosticsButton.disabled = false;
+      adminPassword.value = '';
+      showToast('เข้าสู่ระบบผู้ดูแลแล้ว', 'success');
+    } catch (error) {
+      showToast(error.message, 'error');
+    } finally {
+      adminLoginButton.disabled = false;
+    }
+  });
+
+  diagnosticsButton.addEventListener('click', async () => {
+    diagnosticsButton.disabled = true;
+    diagnosticsResult.textContent = 'กำลังตรวจระบบ...';
+    try {
+      const report = await callApi('diagnostics', {
+        sessionToken: state.adminSessionToken
+      });
+      diagnosticsResult.textContent = JSON.stringify(report, null, 2);
+    } catch (error) {
+      diagnosticsResult.textContent = error.message;
+      showToast(error.message, 'error');
+    } finally {
+      diagnosticsButton.disabled = false;
     }
   });
 
