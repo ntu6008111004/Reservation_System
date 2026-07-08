@@ -1,0 +1,69 @@
+<script>
+  const state = { rooms: [] };
+  const statusEl = document.getElementById('status');
+  const roomSelect = document.getElementById('roomSelect');
+  const bookingsEl = document.getElementById('bookings');
+  const form = document.getElementById('bookingForm');
+
+  function callApi(action, data) {
+    return new Promise((resolve, reject) => {
+      google.script.run
+        .withSuccessHandler((response) => response && response.ok ? resolve(response.data) : reject(new Error(response.error.message)))
+        .withFailureHandler(reject)
+        .api(action, data || {});
+    });
+  }
+
+  function setStatus(message, className) {
+    statusEl.textContent = message;
+    statusEl.className = className || '';
+  }
+
+  function localDateTimeToIso(value) {
+    return new Date(value).toISOString();
+  }
+
+  function renderRooms() {
+    roomSelect.innerHTML = state.rooms.map((room) => `<option value="${room.id}">${room.name}</option>`).join('');
+  }
+
+  function renderBookings(items) {
+    bookingsEl.innerHTML = items.length ? items.map((item) => `
+      <article class="item">
+        <strong>${item.title}</strong>
+        <div class="muted">${item.roomName} · ${new Date(item.startTime).toLocaleString('th-TH')}</div>
+        ${item.meetUrl ? `<a href="${item.meetUrl}" target="_blank">เปิด Google Meet</a>` : ''}
+      </article>
+    `).join('') : '<p class="muted">ยังไม่มีรายการจอง</p>';
+  }
+
+  async function load() {
+    try {
+      const bootstrap = await callApi('bootstrap');
+      state.rooms = bootstrap.rooms || [];
+      renderRooms();
+      renderBookings(await callApi('listBookings'));
+      setStatus(`พร้อมใช้งาน เจ้าของระบบ: ${bootstrap.settings.ownerEmail}`, 'success');
+    } catch (error) {
+      setStatus(error.message, 'error');
+    }
+  }
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const data = Object.fromEntries(new FormData(form).entries());
+    data.startTime = localDateTimeToIso(data.startTime);
+    data.endTime = localDateTimeToIso(data.endTime);
+    setStatus('กำลังบันทึกการจอง...', '');
+    try {
+      const booking = await callApi('createBooking', data);
+      form.reset();
+      renderBookings(await callApi('listBookings'));
+      setStatus(booking.meetUrl ? `จองสำเร็จ และสร้าง Google Meet แล้ว: ${booking.meetUrl}` : 'จองสำเร็จ', 'success');
+    } catch (error) {
+      setStatus(error.message, 'error');
+    }
+  });
+
+  load();
+</script>

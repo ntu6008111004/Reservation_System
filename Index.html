@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <base target="_top">
+    <title>Reservation System</title>
+    <?!= include('Styles'); ?>
+  </head>
+  <body>
+    <main class="app">
+      <section class="panel">
+        <h1>ระบบจองห้องประชุม</h1>
+        <p id="status">กำลังโหลดข้อมูล...</p>
+        <form id="bookingForm">
+          <label>ห้องประชุม
+            <select name="roomId" id="roomSelect" required></select>
+          </label>
+          <label>หัวข้อประชุม
+            <input name="title" required>
+          </label>
+          <label>ชื่อผู้จอง
+            <input name="requesterName" required>
+          </label>
+          <label>อีเมลผู้จอง
+            <input name="requesterEmail" type="email" required>
+          </label>
+          <label>เริ่ม
+            <input name="startTime" type="datetime-local" required>
+          </label>
+          <label>สิ้นสุด
+            <input name="endTime" type="datetime-local" required>
+          </label>
+          <label>รูปแบบประชุม
+            <select name="meetingType">
+              <option value="ONSITE">ประชุมในห้อง</option>
+              <option value="ONLINE">ออนไลน์พร้อม Google Meet</option>
+            </select>
+          </label>
+          <label>หมายเหตุ
+            <textarea name="notes" rows="3"></textarea>
+          </label>
+          <button type="submit">จองห้องประชุม</button>
+        </form>
+      </section>
+      <section class="panel">
+        <h2>รายการจองล่าสุด</h2>
+        <div id="bookings" class="list"></div>
+      </section>
+    </main>
+    <?!= include('Client'); ?>
+  </body>
+</html>

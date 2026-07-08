@@ -1,4 +1,9 @@
-*.zip
-code.gs
+.clasprc.json
+.clasp.json
+.env
+.env.local
+credentials.json
+token.json
 node_modules/
+dist/
 .DS_Store
