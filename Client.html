@@ -9,6 +9,7 @@
   const statusEl = document.getElementById('status');
   const roomSelect = document.getElementById('roomSelect');
   const roomHint = document.getElementById('roomHint');
+  const gpsField = document.getElementById('gpsField');
   const bookingsEl = document.getElementById('bookings');
   const form = document.getElementById('bookingForm');
   const submitButton = document.getElementById('submitButton');
@@ -135,6 +136,10 @@
   }
 
   function formatDateInput(date) {
+    return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+  }
+
+  function formatDisplayDate(date) {
     return `${pad2(date.getDate())}/${pad2(date.getMonth() + 1)}/${date.getFullYear()}`;
   }
 
@@ -159,15 +164,15 @@
   }
 
   function parseThaiDateTime(dateText, timeText, label) {
-    const dateMatch = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(String(dateText || '').trim());
+    const dateMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(dateText || '').trim());
     const timeMatch = /^([01]\d|2[0-3]):([0-5]\d)$/.exec(String(timeText || '').trim());
 
-    if (!dateMatch) throw new Error(`${label}: กรุณาใส่วันที่เป็น dd/mm/yyyy เช่น 08/07/2026`);
-    if (!timeMatch) throw new Error(`${label}: กรุณาใส่เวลาแบบ 24 ชั่วโมง เช่น 09:30 หรือ 14:00`);
+    if (!dateMatch) throw new Error(`${label}: กรุณาเลือกวันที่จากปฏิทิน`);
+    if (!timeMatch) throw new Error(`${label}: กรุณาเลือกเวลาแบบ 24 ชั่วโมง เช่น 09:30 หรือ 14:00`);
 
-    const day = Number(dateMatch[1]);
+    const year = Number(dateMatch[1]);
     const month = Number(dateMatch[2]);
-    const year = Number(dateMatch[3]);
+    const day = Number(dateMatch[3]);
     const hour = Number(timeMatch[1]);
     const minute = Number(timeMatch[2]);
     const parsed = new Date(year, month - 1, day, hour, minute, 0, 0);
@@ -202,11 +207,11 @@
   function formatDateTime(value) {
     if (!value) return '-';
     const date = new Date(value);
-    return `${formatDateInput(date)} ${formatTimeInput(date)} น.`;
+    return `${formatDisplayDate(date)} ${formatTimeInput(date)} น.`;
   }
 
   function formatDayKey(value) {
-    return formatDateInput(new Date(value));
+    return formatDisplayDate(new Date(value));
   }
 
   function setDefaultTimes() {
@@ -221,6 +226,22 @@
 
   function buildBookingPayload() {
     const data = Object.fromEntries(new FormData(form).entries());
+    const missing = [];
+    if (!data.meetingType) missing.push('รูปแบบประชุม');
+    if (!data.roomId) missing.push('ห้องประชุม / ทรัพยากร');
+    if (!data.title) missing.push('หัวข้อประชุม');
+    if (!data.requesterName) missing.push('ชื่อผู้จอง');
+    if (!data.startDate) missing.push('วันที่เริ่ม');
+    if (!data.startClock) missing.push('เวลาเริ่ม');
+    if (!data.endDate) missing.push('วันที่สิ้นสุด');
+    if (!data.endClock) missing.push('เวลาสิ้นสุด');
+    if (missing.length) throw new Error(`กรุณากรอกข้อมูลที่บังคับ: ${missing.join(', ')}`);
+    if (data.requesterEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.requesterEmail)) {
+      throw new Error('อีเมลผู้จองไม่ถูกต้อง ถ้าไม่ต้องการใส่อีเมลให้เว้นว่างไว้');
+    }
+    if (data.gpsUrl && !/^https?:\/\/.+/i.test(data.gpsUrl)) {
+      throw new Error('ลิงก์ GPS ต้องขึ้นต้นด้วย http:// หรือ https://');
+    }
     const start = parseThaiDateTime(data.startDate, data.startClock, 'เวลาเริ่ม');
     const end = parseThaiDateTime(data.endDate, data.endClock, 'เวลาสิ้นสุด');
     data.startTime = start.toISOString();
@@ -229,6 +250,7 @@
     delete data.startClock;
     delete data.endDate;
     delete data.endClock;
+    if (data.meetingType !== 'OFFSITE') data.gpsUrl = '';
     return data;
   }
 
@@ -267,6 +289,7 @@
     } else {
       roomHint.textContent = 'ประชุมในห้อง: แสดงเฉพาะห้องประชุมจริง';
     }
+    gpsField.hidden = meetingType !== 'OFFSITE';
 
     filterRoom.innerHTML = '<option value="">ทุกห้อง</option>' + state.rooms.map((room) => {
       return `<option value="${escapeHtml(room.id)}">${escapeHtml(room.name)}</option>`;
@@ -285,6 +308,7 @@
         <p>${escapeHtml(item.roomName)}<br>${formatDateTime(item.startTime)} - ${formatDateTime(item.endTime)}</p>
         <p>ผู้จอง: ${escapeHtml(item.requesterName || item.requesterEmail)}</p>
         ${item.meetUrl ? `<a class="meet-link" href="${escapeHtml(item.meetUrl)}" target="_blank" rel="noopener">เปิด Google Meet</a>` : ''}
+        ${item.gpsUrl ? `<a class="meet-link" href="${escapeHtml(item.gpsUrl)}" target="_blank" rel="noopener">เปิด GPS</a>` : ''}
       </article>
     `;
   }
@@ -329,7 +353,7 @@
 
     if (!items.length) {
       calendarBoard.innerHTML = '<div class="empty">ไม่พบรายการจองตามเงื่อนไข</div>';
-      bookingTableBody.innerHTML = '<tr><td colspan="6">ไม่พบรายการจอง</td></tr>';
+      bookingTableBody.innerHTML = '<tr><td colspan="7">ไม่พบรายการจอง</td></tr>';
       return;
     }
 
@@ -361,6 +385,7 @@
         <td>${escapeHtml(item.requesterName || item.requesterEmail)}</td>
         <td>${meetingTypeLabel(item.meetingType)}</td>
         <td>${item.meetUrl ? `<a href="${escapeHtml(item.meetUrl)}" target="_blank" rel="noopener">เปิด</a>` : '-'}</td>
+        <td>${item.gpsUrl ? `<a href="${escapeHtml(item.gpsUrl)}" target="_blank" rel="noopener">เปิด</a>` : '-'}</td>
       </tr>
     `).join('');
   }
@@ -555,12 +580,8 @@
     button.addEventListener('click', () => switchTab(button.dataset.tab));
   });
 
-  document.querySelectorAll('#startDate, #endDate, #filterFromDate, #filterToDate').forEach((input) => {
+  document.querySelectorAll('#filterFromDate, #filterToDate').forEach((input) => {
     input.addEventListener('input', () => applyDateMask(input));
-  });
-
-  document.querySelectorAll('#startClock, #endClock').forEach((input) => {
-    input.addEventListener('input', () => applyTimeMask(input));
   });
 
   document.querySelectorAll('input[name="meetingType"]').forEach((input) => {

@@ -1,6 +1,6 @@
 var BookingService = (function () {
   function createBooking(input) {
-    ValidationService.requireFields(input, ['roomId', 'title', 'requesterName', 'requesterEmail', 'startTime', 'endTime', 'meetingType']);
+    ValidationService.requireFields(input, ['roomId', 'title', 'requesterName', 'startTime', 'endTime', 'meetingType']);
     var lock = LockService.getScriptLock();
     lock.waitLock(30000);
     try {
@@ -45,15 +45,16 @@ var BookingService = (function () {
         meetingType: meetingType,
         meetUrl: calendarResult.meetUrl || '',
         calendarEventId: calendarResult.eventId || '',
+        gpsUrl: input.gpsUrl || '',
         notes: input.notes || '',
-        createdBy: input.requesterEmail,
+        createdBy: input.requesterEmail || input.requesterName,
         approvedBy: '',
         cancelledAt: ''
       };
       DatabaseService.appendObject('bookings', booking);
       BookingIndexService.add(booking);
-      UsageAnalyticsService.track('booking_created', input.requesterEmail, { roomId: input.roomId, meetingType: booking.meetingType });
-      AuditLogService.log(input.requesterEmail, 'BOOKING_CREATED', 'booking', id, { roomId: input.roomId });
+      UsageAnalyticsService.track('booking_created', input.requesterEmail || input.requesterName, { roomId: input.roomId, meetingType: booking.meetingType });
+      AuditLogService.log(input.requesterEmail || input.requesterName, 'BOOKING_CREATED', 'booking', id, { roomId: input.roomId });
       return booking;
     } finally {
       lock.releaseLock();

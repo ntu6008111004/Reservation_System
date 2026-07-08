@@ -1,7 +1,7 @@
 <style>
   :root {
     color-scheme: light;
-    font-family: Inter, Arial, "Noto Sans Thai", sans-serif;
+    font-family: "Kanit", Arial, "Noto Sans Thai", sans-serif;
     color: #111827;
     background: #eef3fb;
   }
@@ -224,6 +224,10 @@
     line-height: 1.45;
   }
 
+  .conditional-field[hidden] {
+    display: none;
+  }
+
   .time-fields {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 150px;
@@ -239,6 +243,12 @@
     font-weight: 800;
   }
 
+  label.required::after {
+    content: " *";
+    color: #d92d20;
+    font-weight: 900;
+  }
+
   input,
   select,
   textarea {
@@ -252,6 +262,11 @@
     font: inherit;
     outline: none;
     transition: border-color 140ms ease, box-shadow 140ms ease, background 140ms ease;
+  }
+
+  input[type="date"],
+  input[type="time"] {
+    color-scheme: light;
   }
 
   textarea {

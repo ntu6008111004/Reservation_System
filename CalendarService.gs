@@ -5,15 +5,14 @@ var CalendarService = (function () {
 
   function createOnlineMeeting(input) {
     var ownerEmail = PropertiesService.getScriptProperties().getProperty('OWNER_EMAIL') || 'tsmile.it.official@gmail.com';
+    var attendees = [{ email: ownerEmail }];
+    if (input.requesterEmail) attendees.push({ email: input.requesterEmail });
     var resource = {
       summary: input.title,
       description: 'Reservation booking ID: ' + input.id + '\n' + (input.notes || ''),
       start: { dateTime: input.startTime.toISOString(), timeZone: 'Asia/Bangkok' },
       end: { dateTime: input.endTime.toISOString(), timeZone: 'Asia/Bangkok' },
-      attendees: [
-        { email: ownerEmail },
-        { email: input.requesterEmail }
-      ],
+      attendees: attendees,
       reminders: {
         useDefault: false,
         overrides: [

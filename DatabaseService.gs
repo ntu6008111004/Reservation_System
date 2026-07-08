@@ -1,6 +1,6 @@
 var DatabaseService = (function () {
   var SHEETS = {
-    bookings: ['id', 'createdAt', 'updatedAt', 'status', 'roomId', 'roomName', 'title', 'requesterName', 'requesterEmail', 'startTime', 'endTime', 'meetingType', 'meetUrl', 'calendarEventId', 'notes', 'createdBy', 'approvedBy', 'cancelledAt'],
+    bookings: ['id', 'createdAt', 'updatedAt', 'status', 'roomId', 'roomName', 'title', 'requesterName', 'requesterEmail', 'startTime', 'endTime', 'meetingType', 'meetUrl', 'calendarEventId', 'notes', 'createdBy', 'approvedBy', 'cancelledAt', 'gpsUrl'],
     booking_index: ['key', 'bookingId', 'roomId', 'startTime', 'endTime', 'status'],
     admins: ['username', 'email', 'passwordHash', 'salt', 'role', 'active', 'mustChangePassword', 'createdAt', 'updatedAt'],
     admin_sessions: ['sessionId', 'username', 'tokenHash', 'createdAt', 'expiresAt', 'active'],
