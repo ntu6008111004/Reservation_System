@@ -161,13 +161,13 @@
 
   function parseDateOnly(dateText, label, endOfDay) {
     if (!dateText) return null;
-    const dateMatch = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(String(dateText || '').trim());
+    const dateMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(dateText || '').trim());
     if (!dateMatch) {
-      throw new Error(`${label}: กรุณาใส่วันที่เป็น dd/mm/yyyy เช่น 08/07/2026`);
+      throw new Error(`${label}: กรุณาเลือกวันที่จากปฏิทิน`);
     }
-    const day = Number(dateMatch[1]);
+    const year = Number(dateMatch[1]);
     const month = Number(dateMatch[2]);
-    const year = Number(dateMatch[3]);
+    const day = Number(dateMatch[3]);
     const parsed = new Date(year, month - 1, day, endOfDay ? 23 : 0, endOfDay ? 59 : 0, endOfDay ? 59 : 0, 0);
     if (parsed.getFullYear() !== year || parsed.getMonth() !== month - 1 || parsed.getDate() !== day) {
       throw new Error(`${label}: วันที่ไม่ถูกต้อง`);
@@ -200,20 +200,6 @@
     }
 
     return parsed;
-  }
-
-  function applyDateMask(input) {
-    const digits = input.value.replace(/\D/g, '').slice(0, 8);
-    const parts = [];
-    if (digits.length > 0) parts.push(digits.slice(0, 2));
-    if (digits.length > 2) parts.push(digits.slice(2, 4));
-    if (digits.length > 4) parts.push(digits.slice(4, 8));
-    input.value = parts.join('/');
-  }
-
-  function applyTimeMask(input) {
-    const digits = input.value.replace(/\D/g, '').slice(0, 4);
-    input.value = digits.length > 2 ? `${digits.slice(0, 2)}:${digits.slice(2, 4)}` : digits;
   }
 
   function formatDateTime(value) {
@@ -649,10 +635,6 @@
 
   document.querySelectorAll('.tab-button').forEach((button) => {
     button.addEventListener('click', () => switchTab(button.dataset.tab));
-  });
-
-  document.querySelectorAll('#filterFromDate, #filterToDate, #calendarFilterFromDate, #calendarFilterToDate').forEach((input) => {
-    input.addEventListener('input', () => applyDateMask(input));
   });
 
   document.querySelectorAll('input[name="meetingType"]').forEach((input) => {
