@@ -102,11 +102,15 @@
                 <div class="time-fields">
                   <div class="field">
                     <label for="startDate" class="required">วันที่เริ่ม</label>
-                    <input id="startDate" name="startDate" type="date" required>
+                    <div class="date-picker-control">
+                      <input id="startDate" name="startDate" class="native-date-input" type="date" required>
+                      <input class="date-display" type="text" placeholder="dd/mm/yyyy" readonly data-date-display-for="startDate" aria-label="วันที่เริ่ม">
+                      <button type="button" class="picker-button" data-open-picker="startDate" aria-label="เลือกวันที่เริ่ม">เลือก</button>
+                    </div>
                   </div>
                   <div class="field">
                     <label for="startClock" class="required">เวลาเริ่ม</label>
-                    <input id="startClock" name="startClock" type="time" step="300" required>
+                    <select id="startClock" name="startClock" required></select>
                   </div>
                 </div>
               </div>
@@ -119,11 +123,15 @@
                 <div class="time-fields">
                   <div class="field">
                     <label for="endDate" class="required">วันที่สิ้นสุด</label>
-                    <input id="endDate" name="endDate" type="date" required>
+                    <div class="date-picker-control">
+                      <input id="endDate" name="endDate" class="native-date-input" type="date" required>
+                      <input class="date-display" type="text" placeholder="dd/mm/yyyy" readonly data-date-display-for="endDate" aria-label="วันที่สิ้นสุด">
+                      <button type="button" class="picker-button" data-open-picker="endDate" aria-label="เลือกวันที่สิ้นสุด">เลือก</button>
+                    </div>
                   </div>
                   <div class="field">
                     <label for="endClock" class="required">เวลาสิ้นสุด</label>
-                    <input id="endClock" name="endClock" type="time" step="300" required>
+                    <select id="endClock" name="endClock" required></select>
                   </div>
                 </div>
               </div>
@@ -205,11 +213,19 @@
             </div>
             <div class="field">
               <label for="filterFromDate">ตั้งแต่วันที่</label>
-              <input id="filterFromDate" type="date">
+              <div class="date-picker-control">
+                <input id="filterFromDate" class="native-date-input" type="date">
+                <input class="date-display" type="text" placeholder="dd/mm/yyyy" readonly data-date-display-for="filterFromDate" aria-label="ตั้งแต่วันที่">
+                <button type="button" class="picker-button" data-open-picker="filterFromDate" aria-label="เลือกตั้งแต่วันที่">เลือก</button>
+              </div>
             </div>
             <div class="field">
               <label for="filterToDate">ถึงวันที่</label>
-              <input id="filterToDate" type="date">
+              <div class="date-picker-control">
+                <input id="filterToDate" class="native-date-input" type="date">
+                <input class="date-display" type="text" placeholder="dd/mm/yyyy" readonly data-date-display-for="filterToDate" aria-label="ถึงวันที่">
+                <button type="button" class="picker-button" data-open-picker="filterToDate" aria-label="เลือกถึงวันที่">เลือก</button>
+              </div>
             </div>
             <div class="field full">
               <label for="filterSearch">ค้นหา</label>
@@ -267,11 +283,19 @@
             </div>
             <div class="field">
               <label for="calendarFilterFromDate">ตั้งแต่วันที่</label>
-              <input id="calendarFilterFromDate" type="date">
+              <div class="date-picker-control">
+                <input id="calendarFilterFromDate" class="native-date-input" type="date">
+                <input class="date-display" type="text" placeholder="dd/mm/yyyy" readonly data-date-display-for="calendarFilterFromDate" aria-label="ตั้งแต่วันที่">
+                <button type="button" class="picker-button" data-open-picker="calendarFilterFromDate" aria-label="เลือกตั้งแต่วันที่">เลือก</button>
+              </div>
             </div>
             <div class="field">
               <label for="calendarFilterToDate">ถึงวันที่</label>
-              <input id="calendarFilterToDate" type="date">
+              <div class="date-picker-control">
+                <input id="calendarFilterToDate" class="native-date-input" type="date">
+                <input class="date-display" type="text" placeholder="dd/mm/yyyy" readonly data-date-display-for="calendarFilterToDate" aria-label="ถึงวันที่">
+                <button type="button" class="picker-button" data-open-picker="calendarFilterToDate" aria-label="เลือกถึงวันที่">เลือก</button>
+              </div>
             </div>
             <div class="field full">
               <label for="calendarFilterSearch">ค้นหา</label>
@@ -314,7 +338,15 @@
             </div>
           </section>
 
-          <section class="panel">
+          <section id="adminLockedMessage" class="panel admin-locked">
+            <div class="locked-content">
+              <p class="eyebrow">Admin Locked</p>
+              <h2>เข้าสู่ระบบผู้ดูแลก่อนดูข้อมูล</h2>
+              <p>กรอกอีเมลและรหัสผ่านผู้ดูแลด้านบน ระบบจึงจะแสดงเมนู Dashboard และ Diagnostics</p>
+            </div>
+          </section>
+
+          <section class="panel" data-admin-only hidden>
             <div class="panel-heading">
               <div>
                 <p class="eyebrow">Dashboard</p>
@@ -332,7 +364,7 @@
             <div id="adminRecentBookings" class="booking-list admin-list"></div>
           </section>
 
-          <section class="panel">
+          <section class="panel" data-admin-only hidden>
             <div class="panel-heading">
               <div>
                 <p class="eyebrow">System Diagnostics</p>

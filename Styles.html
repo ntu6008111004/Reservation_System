@@ -258,6 +258,27 @@
     display: none;
   }
 
+  [data-admin-only][hidden],
+  .admin-locked[hidden] {
+    display: none;
+  }
+
+  .admin-locked {
+    background: linear-gradient(135deg, #f8fbff, #eef4ff);
+  }
+
+  .locked-content {
+    max-width: 620px;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .locked-content p:last-child {
+    margin: 8px 0 0;
+    color: #667085;
+    line-height: 1.6;
+  }
+
   .time-fields {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 150px;
@@ -297,6 +318,42 @@
   input[type="date"],
   input[type="time"] {
     color-scheme: light;
+  }
+
+  .date-picker-control {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .native-date-input {
+    position: absolute;
+    inset: auto auto 0 0;
+    width: 1px;
+    min-height: 1px;
+    height: 1px;
+    padding: 0;
+    border: 0;
+    opacity: 0;
+  }
+
+  .date-display {
+    cursor: pointer;
+  }
+
+  .picker-button {
+    min-height: 46px;
+    padding: 10px 14px;
+    color: #155eef;
+    background: #e8f0ff;
+    box-shadow: none;
+  }
+
+  .picker-button:hover {
+    color: #ffffff;
+    background: #155eef;
   }
 
   textarea {
@@ -781,6 +838,51 @@
 
   .success {
     color: #bbf7d0;
+  }
+
+  .hero {
+    border-radius: 24px;
+  }
+
+  .top-tabs,
+  .panel,
+  .time-group,
+  .meeting-toggle label,
+  .metrics div,
+  .booking-card,
+  .calendar-summary div,
+  .day-column,
+  .calendar-event,
+  .table-wrap,
+  .empty,
+  .modal,
+  .toast {
+    border-radius: 18px;
+  }
+
+  input,
+  select,
+  textarea,
+  button,
+  .modal-actions a,
+  .modal-actions button {
+    border-radius: 14px;
+  }
+
+  .panel {
+    box-shadow: 0 18px 46px rgba(15, 23, 42, 0.07);
+  }
+
+  .booking-card,
+  .metrics div,
+  .calendar-summary div,
+  .day-column {
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
+  }
+
+  .tab-button.active,
+  button:not(.secondary):not(.picker-button):not(.icon-button) {
+    box-shadow: 0 10px 24px rgba(21, 94, 239, 0.18);
   }
 
   @media (max-width: 900px) {

@@ -58,6 +58,8 @@
   const adminLogoutButton = document.getElementById('adminLogoutButton');
   const adminDashboardButton = document.getElementById('adminDashboardButton');
   const adminState = document.getElementById('adminState');
+  const adminLockedMessage = document.getElementById('adminLockedMessage');
+  const adminOnlyPanels = document.querySelectorAll('[data-admin-only]');
   const diagnosticsButton = document.getElementById('diagnosticsButton');
   const diagnosticsResult = document.getElementById('diagnosticsResult');
   const adminTotalBookings = document.getElementById('adminTotalBookings');
@@ -155,8 +157,47 @@
     return `${pad2(date.getDate())}/${pad2(date.getMonth() + 1)}/${date.getFullYear()}`;
   }
 
+  function formatDisplayDateValue(dateValue) {
+    const dateMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(dateValue || '').trim());
+    if (!dateMatch) return '';
+    return `${dateMatch[3]}/${dateMatch[2]}/${dateMatch[1]}`;
+  }
+
   function formatTimeInput(date) {
     return `${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
+  }
+
+  function populateTimeSelect(select, selectedValue) {
+    const currentValue = selectedValue || select.value;
+    const options = [];
+    for (let hour = 0; hour < 24; hour += 1) {
+      for (let minute = 0; minute < 60; minute += 15) {
+        const value = `${pad2(hour)}:${pad2(minute)}`;
+        options.push(`<option value="${value}">${value}</option>`);
+      }
+    }
+    select.innerHTML = options.join('');
+    if (currentValue) select.value = currentValue;
+  }
+
+  function syncDateDisplay(dateInput) {
+    const display = document.querySelector(`[data-date-display-for="${dateInput.id}"]`);
+    if (display) display.value = formatDisplayDateValue(dateInput.value);
+  }
+
+  function syncAllDateDisplays() {
+    document.querySelectorAll('.native-date-input').forEach(syncDateDisplay);
+  }
+
+  function openDatePicker(inputId) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    if (typeof input.showPicker === 'function') {
+      input.showPicker();
+    } else {
+      input.focus();
+      input.click();
+    }
   }
 
   function parseDateOnly(dateText, label, endOfDay) {
@@ -213,6 +254,8 @@
   }
 
   function setDefaultTimes() {
+    populateTimeSelect(form.elements.startClock);
+    populateTimeSelect(form.elements.endClock);
     const start = new Date();
     start.setMinutes(start.getMinutes() < 30 ? 30 : 60, 0, 0);
     const end = new Date(start.getTime() + 60 * 60 * 1000);
@@ -220,6 +263,7 @@
     form.elements.startClock.value = formatTimeInput(start);
     form.elements.endDate.value = formatDateInput(end);
     form.elements.endClock.value = formatTimeInput(end);
+    syncAllDateDisplays();
   }
 
   function buildBookingPayload() {
@@ -443,9 +487,14 @@
   function setAdminLoggedIn(session) {
     state.adminSessionToken = session ? session.sessionToken : '';
     adminState.textContent = session ? `เข้าสู่ระบบ: ${session.username}` : 'ยังไม่ได้เข้าสู่ระบบ';
+    adminLockedMessage.hidden = !!session;
+    adminOnlyPanels.forEach((panel) => {
+      panel.hidden = !session;
+    });
     diagnosticsButton.disabled = !session;
     adminDashboardButton.disabled = !session;
     adminLogoutButton.disabled = !session;
+    adminLoginButton.disabled = !!session;
   }
 
   function switchTab(tabName) {
@@ -546,6 +595,7 @@
   resetButton.addEventListener('click', () => {
     form.reset();
     setDefaultTimes();
+    renderRooms();
   });
 
   refreshButton.addEventListener('click', async () => {
@@ -603,7 +653,7 @@
       showResult({ eyebrow: 'Admin Login', title: 'เข้าสู่ระบบไม่สำเร็จ', message: error.message });
     } finally {
       hideLoading();
-      adminLoginButton.disabled = false;
+      adminLoginButton.disabled = !!state.adminSessionToken;
     }
   });
 
@@ -629,7 +679,7 @@
       showResult({ eyebrow: 'Diagnostics', title: 'ตรวจระบบไม่สำเร็จ', message: error.message });
     } finally {
       hideLoading();
-      diagnosticsButton.disabled = false;
+      diagnosticsButton.disabled = !state.adminSessionToken;
     }
   });
 
@@ -639,6 +689,19 @@
 
   document.querySelectorAll('input[name="meetingType"]').forEach((input) => {
     input.addEventListener('change', renderRooms);
+  });
+
+  document.querySelectorAll('[data-open-picker]').forEach((button) => {
+    button.addEventListener('click', () => openDatePicker(button.dataset.openPicker));
+  });
+
+  document.querySelectorAll('.date-display').forEach((display) => {
+    display.addEventListener('click', () => openDatePicker(display.dataset.dateDisplayFor));
+  });
+
+  document.querySelectorAll('.native-date-input').forEach((input) => {
+    input.addEventListener('input', () => syncDateDisplay(input));
+    input.addEventListener('change', () => syncDateDisplay(input));
   });
 
   [filterRoom, filterType, filterFromDate, filterToDate, filterSearch].forEach((input) => {
@@ -657,5 +720,6 @@
   });
 
   adminRecentBookings.innerHTML = '<div class="empty">เข้าสู่ระบบเพื่อดู Dashboard</div>';
+  setAdminLoggedIn(null);
   load();
 </script>
