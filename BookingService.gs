@@ -54,7 +54,13 @@ var BookingService = (function () {
       DatabaseService.appendObject('bookings', booking);
       BookingIndexService.add(booking);
       UsageAnalyticsService.track('booking_created', input.requesterEmail || input.requesterName, { roomId: input.roomId, meetingType: booking.meetingType });
-      AuditLogService.log(input.requesterEmail || input.requesterName, 'BOOKING_CREATED', 'booking', id, { roomId: input.roomId });
+      var emailResult = Utils.safeRun('bookingCreatedEmail', function () {
+        return EmailNotificationService.bookingCreated(booking);
+      });
+      AuditLogService.log(input.requesterEmail || input.requesterName, 'BOOKING_CREATED', 'booking', id, {
+        roomId: input.roomId,
+        emailNotification: emailResult
+      });
       return booking;
     } finally {
       lock.releaseLock();
@@ -86,11 +92,15 @@ var BookingService = (function () {
     }
     DatabaseService.upsertByKey('bookings', 'id', id, booking);
     BookingIndexService.updateStatus(id, 'CANCELLED');
+    var emailResult = Utils.safeRun('bookingCancelledEmail', function () {
+      return EmailNotificationService.bookingCancelled(booking);
+    });
     AuditLogService.log(actor || 'ADMIN', 'BOOKING_CANCELLED', 'booking', id, {
       roomId: booking.roomId,
       startTime: booking.startTime,
       endTime: booking.endTime,
-      calendarDelete: calendarDeleteResult
+      calendarDelete: calendarDeleteResult,
+      emailNotification: emailResult
     });
     return booking;
   }

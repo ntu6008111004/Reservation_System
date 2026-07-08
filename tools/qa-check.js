@@ -54,9 +54,16 @@ if (!styles.includes('max-height: min(92vh, 760px)')) fail('Modal should be scro
 
 const databaseService = read('DatabaseService.gs');
 const setupService = read('Setup.gs');
+const bookingService = read('BookingService.gs');
+const emailService = read('EmailNotificationService.gs');
 if (!databaseService.includes('ROW_BUFFER_THRESHOLD = 100')) fail('Missing sheet row buffer threshold');
 if (!databaseService.includes('ROW_GROWTH_SIZE = 5000')) fail('Missing sheet row growth size');
 if (!databaseService.includes('ensureRowCapacity(name, sheet)')) fail('appendObject must check sheet row capacity');
 if (!setupService.includes("Utils.safeRun('sheetCapacity'")) fail('Diagnostics must include sheet capacity report');
+if (!setupService.includes("email_notifications_enabled', 'false'")) fail('Email notifications must default to disabled');
+if (!setupService.includes("Utils.safeRun('emailNotifications'")) fail('Diagnostics must include email notification status');
+if (!bookingService.includes('EmailNotificationService.bookingCreated')) fail('Booking creation should be wired to dormant email notifications');
+if (!bookingService.includes('EmailNotificationService.bookingCancelled')) fail('Booking cancellation should be wired to dormant email notifications');
+if (!emailService.includes("SettingsService.get('email_notifications_enabled', 'false')")) fail('Email notification service must respect disabled setting');
 
 console.log(`QA checks passed (${gasFiles.length} Apps Script files, client JS, Thai encoding, required UI ids, responsive guards).`);

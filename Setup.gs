@@ -56,6 +56,7 @@ function seedSettings() {
   SettingsService.setDefault('booking_policy', 'first_conflict_wins', 'Reject overlapping bookings for the same room.');
   SettingsService.setDefault('online_meeting_provider', 'google_meet', 'Online meetings use Google Calendar conference data.');
   SettingsService.setDefault('web_app_access', 'Anyone with the link', 'Recommended lightweight access mode.');
+  SettingsService.setDefault('email_notifications_enabled', 'false', 'Keep email notifications disabled until users are ready.');
 }
 
 function seedRooms() {
@@ -125,6 +126,12 @@ function runSystemDiagnostics() {
     Utils.safeRun('spreadsheetId', function () { return getSpreadsheetId(); }),
     Utils.safeRun('databaseSchema', function () { return verifyDatabaseSchema(); }),
     Utils.safeRun('settings', function () { return DatabaseService.listObjects('settings').length > 0; }),
+    Utils.safeRun('emailNotifications', function () {
+      return {
+        enabled: EmailNotificationService.enabled(),
+        mode: EmailNotificationService.enabled() ? 'ready_to_send_optional_email' : 'disabled_waiting_for_user_adoption'
+      };
+    }),
     Utils.safeRun('sheetCapacity', function () { return DatabaseService.sheetCapacityReport(); }),
     Utils.safeRun('calendarAccess', function () { return CalendarService.testAccess(); }),
     Utils.safeRun('calendarMeetCreation', function () { return CalendarService.testMeetCreation(); }),
