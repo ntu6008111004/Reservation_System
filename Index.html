@@ -16,7 +16,7 @@
         <div>
           <p class="eyebrow">Reservation System</p>
           <h1>ระบบจองห้องประชุม</h1>
-          <p class="lead">จองห้องประชุม ดูปฏิทินรายการจอง ตรวจสถานะระบบ และเข้าใช้งานผู้ดูแลได้จากหน้าเดียว</p>
+          <p class="lead">จองห้องประชุม ดูรายการจองแบบ Card/Table เปิดปฏิทิน และจัดการฝั่งผู้ดูแลได้จากหน้าเดียว</p>
         </div>
         <div class="hero-status">
           <span class="status-dot"></span>
@@ -29,9 +29,9 @@
 
       <nav class="top-tabs" aria-label="เมนูหลัก">
         <button type="button" class="tab-button active" data-tab="booking">จองห้อง</button>
-        <button type="button" class="tab-button" data-tab="calendar">ปฏิทิน / Filter</button>
-        <button type="button" class="tab-button" data-tab="admin">ผู้ดูแลระบบ</button>
-        <button type="button" class="tab-button" data-tab="diagnostics">Diagnostics</button>
+        <button type="button" class="tab-button" data-tab="list">รายการจอง</button>
+        <button type="button" class="tab-button" data-tab="calendar">ปฏิทิน</button>
+        <button type="button" class="tab-button admin-tab" data-tab="admin">ผู้ดูแลระบบ</button>
       </nav>
 
       <section id="tab-booking" class="tab-view active">
@@ -42,7 +42,7 @@
                 <p class="eyebrow">New Booking</p>
                 <h2>สร้างรายการจอง</h2>
               </div>
-              <span class="pill">วันที่ dd/mm/yyyy · เวลา 24 ชม.</span>
+              <span class="pill">เลือกวันที่จากปฏิทิน · เวลา 24 ชม.</span>
             </div>
 
             <form id="bookingForm" class="booking-form" novalidate>
@@ -97,7 +97,7 @@
               <div class="time-group full">
                 <div class="time-group-title">
                   <strong>วันและเวลาเริ่ม</strong>
-                  <span>dd/mm/yyyy และ HH:mm</span>
+                  <span>เลือกจากปฏิทินและเวลา 24 ชั่วโมง</span>
                 </div>
                 <div class="time-fields">
                   <div class="field">
@@ -114,7 +114,7 @@
               <div class="time-group full">
                 <div class="time-group-title">
                   <strong>วันและเวลาสิ้นสุด</strong>
-                  <span>ใช้เวลา 24 ชั่วโมง เช่น 09:30, 14:00</span>
+                  <span>เช่น 09:30, 14:00</span>
                 </div>
                 <div class="time-fields">
                   <div class="field">
@@ -161,7 +161,7 @@
                 </div>
                 <div>
                   <strong id="metricRooms">0</strong>
-                  <span>ห้องพร้อมใช้</span>
+                  <span>ทรัพยากรพร้อมใช้</span>
                 </div>
               </div>
             </section>
@@ -180,16 +180,15 @@
         </section>
       </section>
 
-      <section id="tab-calendar" class="tab-view">
+      <section id="tab-list" class="tab-view">
         <section class="panel">
           <div class="panel-heading">
             <div>
-              <p class="eyebrow">Calendar & Filters</p>
-              <h2>ปฏิทินการจองและค้นหารายการ</h2>
+              <p class="eyebrow">Booking List</p>
+              <h2>รายการจองแบบ Card และตาราง</h2>
             </div>
-            <button type="button" id="calendarRefreshButton">โหลดข้อมูลใหม่</button>
+            <button type="button" id="listRefreshButton">โหลดข้อมูลใหม่</button>
           </div>
-
           <div class="filter-grid">
             <div class="field">
               <label for="filterRoom">ห้องประชุม</label>
@@ -217,15 +216,13 @@
               <input id="filterSearch" placeholder="ค้นหาจากหัวข้อ ผู้จอง อีเมล หรือชื่อห้อง">
             </div>
           </div>
-
           <div class="calendar-summary">
             <div><strong id="filteredCount">0</strong><span>รายการที่พบ</span></div>
             <div><strong id="onlineCount">0</strong><span>ออนไลน์</span></div>
             <div><strong id="onsiteCount">0</strong><span>ในห้อง</span></div>
             <div><strong id="offsiteCount">0</strong><span>นอกสถานที่</span></div>
           </div>
-
-          <div id="calendarBoard" class="calendar-board"></div>
+          <div id="filteredCards" class="filtered-cards"></div>
           <div class="table-wrap">
             <table>
               <thead>
@@ -245,17 +242,63 @@
         </section>
       </section>
 
+      <section id="tab-calendar" class="tab-view">
+        <section class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Calendar View</p>
+              <h2>ปฏิทินการจอง</h2>
+            </div>
+            <button type="button" id="calendarRefreshButton">โหลดข้อมูลใหม่</button>
+          </div>
+          <div class="filter-grid">
+            <div class="field">
+              <label for="calendarFilterRoom">ห้องประชุม</label>
+              <select id="calendarFilterRoom"></select>
+            </div>
+            <div class="field">
+              <label for="calendarFilterType">รูปแบบประชุม</label>
+              <select id="calendarFilterType">
+                <option value="">ทั้งหมด</option>
+                <option value="ONSITE">ประชุมในห้อง</option>
+                <option value="ONLINE">ออนไลน์</option>
+                <option value="OFFSITE">นอกสถานที่</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="calendarFilterFromDate">ตั้งแต่วันที่</label>
+              <input id="calendarFilterFromDate" inputmode="numeric" placeholder="dd/mm/yyyy" maxlength="10" autocomplete="off">
+            </div>
+            <div class="field">
+              <label for="calendarFilterToDate">ถึงวันที่</label>
+              <input id="calendarFilterToDate" inputmode="numeric" placeholder="dd/mm/yyyy" maxlength="10" autocomplete="off">
+            </div>
+            <div class="field full">
+              <label for="calendarFilterSearch">ค้นหา</label>
+              <input id="calendarFilterSearch" placeholder="ค้นหาจากหัวข้อ ผู้จอง หรือชื่อห้อง">
+            </div>
+          </div>
+          <div class="calendar-summary">
+            <div><strong id="calendarFilteredCount">0</strong><span>รายการที่พบ</span></div>
+            <div><strong id="calendarOnlineCount">0</strong><span>ออนไลน์</span></div>
+            <div><strong id="calendarOnsiteCount">0</strong><span>ในห้อง</span></div>
+            <div><strong id="calendarOffsiteCount">0</strong><span>นอกสถานที่</span></div>
+          </div>
+          <div id="calendarBoard" class="calendar-board"></div>
+        </section>
+      </section>
+
       <section id="tab-admin" class="tab-view">
-        <section class="content-grid">
-          <section class="panel">
-            <div class="panel-heading">
+        <section class="admin-layout">
+          <section class="panel admin-login-card">
+            <div class="panel-heading compact-heading">
               <div>
-                <p class="eyebrow">Admin Login</p>
-                <h2>เข้าสู่ระบบผู้ดูแล</h2>
+                <p class="eyebrow">Admin</p>
+                <h2>ผู้ดูแลระบบ</h2>
               </div>
               <span id="adminState" class="pill">ยังไม่ได้เข้าสู่ระบบ</span>
             </div>
-            <div class="admin-form">
+            <div class="admin-form compact-admin-form">
               <div class="field">
                 <label for="adminUsername">อีเมลผู้ดูแล</label>
                 <input id="adminUsername" placeholder="admin@example.com">
@@ -265,7 +308,7 @@
                 <input id="adminPassword" type="password" placeholder="รหัสผ่านผู้ดูแล">
               </div>
               <div class="form-actions">
-                <button type="button" id="adminLoginButton">เข้าสู่ระบบผู้ดูแล</button>
+                <button type="button" id="adminLoginButton">เข้าสู่ระบบ</button>
                 <button type="button" class="secondary" id="adminLogoutButton" disabled>ออกจากระบบ</button>
               </div>
             </div>
@@ -280,43 +323,26 @@
               <button type="button" class="secondary" id="adminDashboardButton" disabled>โหลด Dashboard</button>
             </div>
             <div class="metrics admin-metrics">
-              <div>
-                <strong id="adminTotalBookings">0</strong>
-                <span>จองทั้งหมด</span>
-              </div>
-              <div>
-                <strong id="adminOnlineBookings">0</strong>
-                <span>Online</span>
-              </div>
-              <div>
-                <strong id="adminOnsiteBookings">0</strong>
-                <span>Onsite</span>
-              </div>
-              <div>
-                <strong id="adminOffsiteBookings">0</strong>
-                <span>นอกสถานที่</span>
-              </div>
-              <div>
-                <strong id="adminActiveRooms">0</strong>
-                <span>ห้องใช้งาน</span>
-              </div>
+              <div><strong id="adminTotalBookings">0</strong><span>จองทั้งหมด</span></div>
+              <div><strong id="adminOnlineBookings">0</strong><span>Online</span></div>
+              <div><strong id="adminOnsiteBookings">0</strong><span>Onsite</span></div>
+              <div><strong id="adminOffsiteBookings">0</strong><span>นอกสถานที่</span></div>
+              <div><strong id="adminActiveRooms">0</strong><span>ทรัพยากร</span></div>
             </div>
             <div id="adminRecentBookings" class="booking-list admin-list"></div>
           </section>
-        </section>
-      </section>
 
-      <section id="tab-diagnostics" class="tab-view">
-        <section class="panel">
-          <div class="panel-heading">
-            <div>
-              <p class="eyebrow">System Diagnostics</p>
-              <h2>ตรวจระบบหลัง Deploy</h2>
+          <section class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">System Diagnostics</p>
+                <h2>ตรวจระบบหลัง Deploy</h2>
+              </div>
+              <button type="button" id="diagnosticsButton" disabled>ตรวจระบบ</button>
             </div>
-            <button type="button" id="diagnosticsButton" disabled>ตรวจระบบ</button>
-          </div>
-          <p class="helper-text">ต้องเข้าสู่ระบบผู้ดูแลก่อน แล้วหน้านี้จะตรวจ Spreadsheet, Schema, Calendar, Google Meet, Cache, Lock และ Web App config</p>
-          <pre id="diagnosticsResult">ยังไม่ได้รัน diagnostics</pre>
+            <p class="helper-text">ตรวจ Spreadsheet, Schema, Calendar, Google Meet, Cache, Lock และ Web App config ในหน้า Admin</p>
+            <pre id="diagnosticsResult">ยังไม่ได้รัน diagnostics</pre>
+          </section>
         </section>
       </section>
     </main>

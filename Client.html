@@ -36,6 +36,18 @@
   const onlineCount = document.getElementById('onlineCount');
   const onsiteCount = document.getElementById('onsiteCount');
   const offsiteCount = document.getElementById('offsiteCount');
+  const filteredCards = document.getElementById('filteredCards');
+  const listRefreshButton = document.getElementById('listRefreshButton');
+
+  const calendarFilterRoom = document.getElementById('calendarFilterRoom');
+  const calendarFilterType = document.getElementById('calendarFilterType');
+  const calendarFilterFromDate = document.getElementById('calendarFilterFromDate');
+  const calendarFilterToDate = document.getElementById('calendarFilterToDate');
+  const calendarFilterSearch = document.getElementById('calendarFilterSearch');
+  const calendarFilteredCount = document.getElementById('calendarFilteredCount');
+  const calendarOnlineCount = document.getElementById('calendarOnlineCount');
+  const calendarOnsiteCount = document.getElementById('calendarOnsiteCount');
+  const calendarOffsiteCount = document.getElementById('calendarOffsiteCount');
   const calendarBoard = document.getElementById('calendarBoard');
   const bookingTableBody = document.getElementById('bookingTableBody');
   const calendarRefreshButton = document.getElementById('calendarRefreshButton');
@@ -294,6 +306,7 @@
     filterRoom.innerHTML = '<option value="">ทุกห้อง</option>' + state.rooms.map((room) => {
       return `<option value="${escapeHtml(room.id)}">${escapeHtml(room.name)}</option>`;
     }).join('');
+    calendarFilterRoom.innerHTML = filterRoom.innerHTML;
     metricRooms.textContent = state.rooms.length;
   }
 
@@ -318,18 +331,18 @@
     bookingsEl.innerHTML = items.length ? items.slice(0, 8).map(bookingCardHtml).join('') : '<div class="empty">ยังไม่มีรายการจองล่าสุด</div>';
   }
 
-  function getFilteredBookings() {
+  function getFilteredBookings(filters) {
     let fromDate = null;
     let toDate = null;
-    if (filterFromDate.value) fromDate = parseDateOnly(filterFromDate.value, 'ตั้งแต่วันที่', false);
-    if (filterToDate.value) toDate = parseDateOnly(filterToDate.value, 'ถึงวันที่', true);
+    if (filters.fromDate.value) fromDate = parseDateOnly(filters.fromDate.value, 'ตั้งแต่วันที่', false);
+    if (filters.toDate.value) toDate = parseDateOnly(filters.toDate.value, 'ถึงวันที่', true);
 
-    const query = filterSearch.value.trim().toLowerCase();
+    const query = filters.search.value.trim().toLowerCase();
     return state.bookings.filter((item) => {
       const start = new Date(item.startTime);
       const searchable = [item.title, item.roomName, item.requesterName, item.requesterEmail, item.meetingType].join(' ').toLowerCase();
-      if (filterRoom.value && item.roomId !== filterRoom.value) return false;
-      if (filterType.value && item.meetingType !== filterType.value) return false;
+      if (filters.room.value && item.roomId !== filters.room.value) return false;
+      if (filters.type.value && item.meetingType !== filters.type.value) return false;
       if (fromDate && start < fromDate) return false;
       if (toDate && start > toDate) return false;
       if (query && !searchable.includes(query)) return false;
@@ -337,23 +350,79 @@
     }).sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
   }
 
-  function renderCalendar() {
+  function updateSummary(items, nodes) {
+    nodes.total.textContent = items.length;
+    nodes.online.textContent = items.filter((item) => item.meetingType === 'ONLINE').length;
+    nodes.onsite.textContent = items.filter((item) => item.meetingType === 'ONSITE').length;
+    nodes.offsite.textContent = items.filter((item) => item.meetingType === 'OFFSITE').length;
+  }
+
+  function renderList() {
     let items = [];
     try {
-      items = getFilteredBookings();
+      items = getFilteredBookings({
+        room: filterRoom,
+        type: filterType,
+        fromDate: filterFromDate,
+        toDate: filterToDate,
+        search: filterSearch
+      });
     } catch (error) {
       showToast(error.message, 'error');
       return;
     }
 
-    filteredCount.textContent = items.length;
-    onlineCount.textContent = items.filter((item) => item.meetingType === 'ONLINE').length;
-    onsiteCount.textContent = items.filter((item) => item.meetingType === 'ONSITE').length;
-    offsiteCount.textContent = items.filter((item) => item.meetingType === 'OFFSITE').length;
+    updateSummary(items, {
+      total: filteredCount,
+      online: onlineCount,
+      onsite: onsiteCount,
+      offsite: offsiteCount
+    });
+
+    if (!items.length) {
+      filteredCards.innerHTML = '<div class="empty">ไม่พบรายการจองตามเงื่อนไข</div>';
+      bookingTableBody.innerHTML = '<tr><td colspan="7">ไม่พบรายการจอง</td></tr>';
+      return;
+    }
+
+    filteredCards.innerHTML = items.map(bookingCardHtml).join('');
+    bookingTableBody.innerHTML = items.map((item) => `
+      <tr>
+        <td>${formatDateTime(item.startTime)}<br><span class="muted">${formatDateTime(item.endTime)}</span></td>
+        <td>${escapeHtml(item.title)}</td>
+        <td>${escapeHtml(item.roomName)}</td>
+        <td>${escapeHtml(item.requesterName || item.requesterEmail)}</td>
+        <td>${meetingTypeLabel(item.meetingType)}</td>
+        <td>${item.meetUrl ? `<a href="${escapeHtml(item.meetUrl)}" target="_blank" rel="noopener">เปิด</a>` : '-'}</td>
+        <td>${item.gpsUrl ? `<a href="${escapeHtml(item.gpsUrl)}" target="_blank" rel="noopener">เปิด</a>` : '-'}</td>
+      </tr>
+    `).join('');
+  }
+
+  function renderCalendar() {
+    let items = [];
+    try {
+      items = getFilteredBookings({
+        room: calendarFilterRoom,
+        type: calendarFilterType,
+        fromDate: calendarFilterFromDate,
+        toDate: calendarFilterToDate,
+        search: calendarFilterSearch
+      });
+    } catch (error) {
+      showToast(error.message, 'error');
+      return;
+    }
+
+    updateSummary(items, {
+      total: calendarFilteredCount,
+      online: calendarOnlineCount,
+      onsite: calendarOnsiteCount,
+      offsite: calendarOffsiteCount
+    });
 
     if (!items.length) {
       calendarBoard.innerHTML = '<div class="empty">ไม่พบรายการจองตามเงื่อนไข</div>';
-      bookingTableBody.innerHTML = '<tr><td colspan="7">ไม่พบรายการจอง</td></tr>';
       return;
     }
 
@@ -376,23 +445,12 @@
         `).join('')}
       </section>
     `).join('');
-
-    bookingTableBody.innerHTML = items.map((item) => `
-      <tr>
-        <td>${formatDateTime(item.startTime)}<br><span class="muted">${formatDateTime(item.endTime)}</span></td>
-        <td>${escapeHtml(item.title)}</td>
-        <td>${escapeHtml(item.roomName)}</td>
-        <td>${escapeHtml(item.requesterName || item.requesterEmail)}</td>
-        <td>${meetingTypeLabel(item.meetingType)}</td>
-        <td>${item.meetUrl ? `<a href="${escapeHtml(item.meetUrl)}" target="_blank" rel="noopener">เปิด</a>` : '-'}</td>
-        <td>${item.gpsUrl ? `<a href="${escapeHtml(item.gpsUrl)}" target="_blank" rel="noopener">เปิด</a>` : '-'}</td>
-      </tr>
-    `).join('');
   }
 
   async function refreshBookings() {
     state.bookings = await callApi('listBookings');
     renderBookings(state.bookings);
+    renderList();
     renderCalendar();
   }
 
@@ -412,6 +470,7 @@
     document.querySelectorAll('.tab-view').forEach((view) => {
       view.classList.toggle('active', view.id === `tab-${tabName}`);
     });
+    if (tabName === 'list') renderList();
     if (tabName === 'calendar') renderCalendar();
   }
 
@@ -529,6 +588,18 @@
     }
   });
 
+  listRefreshButton.addEventListener('click', async () => {
+    showLoading('กำลังโหลดรายการจอง...');
+    try {
+      await refreshBookings();
+      showToast('โหลดรายการจองแล้ว', 'success');
+    } catch (error) {
+      showResult({ eyebrow: 'Booking List', title: 'โหลดรายการจองไม่สำเร็จ', message: error.message });
+    } finally {
+      hideLoading();
+    }
+  });
+
   adminLoginButton.addEventListener('click', async () => {
     adminLoginButton.disabled = true;
     diagnosticsResult.textContent = '';
@@ -580,7 +651,7 @@
     button.addEventListener('click', () => switchTab(button.dataset.tab));
   });
 
-  document.querySelectorAll('#filterFromDate, #filterToDate').forEach((input) => {
+  document.querySelectorAll('#filterFromDate, #filterToDate, #calendarFilterFromDate, #calendarFilterToDate').forEach((input) => {
     input.addEventListener('input', () => applyDateMask(input));
   });
 
@@ -589,6 +660,11 @@
   });
 
   [filterRoom, filterType, filterFromDate, filterToDate, filterSearch].forEach((input) => {
+    input.addEventListener('input', renderList);
+    input.addEventListener('change', renderList);
+  });
+
+  [calendarFilterRoom, calendarFilterType, calendarFilterFromDate, calendarFilterToDate, calendarFilterSearch].forEach((input) => {
     input.addEventListener('input', renderCalendar);
     input.addEventListener('change', renderCalendar);
   });

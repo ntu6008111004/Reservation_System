@@ -133,6 +133,17 @@
     background: #155eef;
   }
 
+  .tab-button.admin-tab {
+    margin-left: auto;
+    color: #7c2d12;
+    background: #fff7ed;
+  }
+
+  .tab-button.admin-tab.active {
+    color: #ffffff;
+    background: #c2410c;
+  }
+
   .tab-view {
     display: none;
   }
@@ -144,6 +155,25 @@
   .side-stack {
     display: grid;
     gap: 20px;
+  }
+
+  .admin-layout {
+    display: grid;
+    gap: 20px;
+  }
+
+  .admin-login-card {
+    border-color: #fed7aa;
+    background: #fffaf5;
+  }
+
+  .compact-heading {
+    align-items: center;
+  }
+
+  .compact-admin-form {
+    grid-template-columns: minmax(220px, 1fr) minmax(180px, 0.8fr) auto;
+    align-items: end;
   }
 
   .panel {
@@ -409,6 +439,13 @@
   .booking-list {
     display: grid;
     gap: 12px;
+  }
+
+  .filtered-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 12px;
+    margin-bottom: 18px;
   }
 
   .booking-card {
@@ -769,8 +806,13 @@
     .time-fields,
     .filter-grid,
     .calendar-summary,
-    .admin-metrics {
+    .admin-metrics,
+    .compact-admin-form {
       grid-template-columns: 1fr;
+    }
+
+    .tab-button.admin-tab {
+      margin-left: 0;
     }
 
     .form-actions {
