@@ -13,7 +13,7 @@
         <div>
           <p class="eyebrow">Reservation System</p>
           <h1>ระบบจองห้องประชุม</h1>
-          <p class="lead">จองห้องประชุมหรือสร้าง Google Meet ได้ในฟอร์มเดียว ระบบจะบันทึกลง Google Sheet และสร้าง Calendar event ให้อัตโนมัติ</p>
+          <p class="lead">จองห้องประชุม ดูปฏิทินรายการจอง ตรวจสถานะระบบ และเข้าใช้งานผู้ดูแลได้จากหน้าเดียว</p>
         </div>
         <div class="hero-status">
           <span class="status-dot"></span>
@@ -24,116 +24,226 @@
         </div>
       </section>
 
-      <section class="content-grid">
-        <section class="panel booking-panel">
-          <div class="panel-heading">
-            <div>
-              <p class="eyebrow">New Booking</p>
-              <h2>สร้างรายการจอง</h2>
-            </div>
-            <span class="pill">วันที่ dd/mm/yyyy · เวลา 24 ชม.</span>
-          </div>
+      <nav class="top-tabs" aria-label="เมนูหลัก">
+        <button type="button" class="tab-button active" data-tab="booking">จองห้อง</button>
+        <button type="button" class="tab-button" data-tab="calendar">ปฏิทิน / Filter</button>
+        <button type="button" class="tab-button" data-tab="admin">ผู้ดูแลระบบ</button>
+        <button type="button" class="tab-button" data-tab="diagnostics">Diagnostics</button>
+      </nav>
 
-          <form id="bookingForm" class="booking-form" novalidate>
-            <div class="field full">
-              <label for="roomSelect">ห้องประชุม / ทรัพยากร</label>
-              <select name="roomId" id="roomSelect" required></select>
-            </div>
-
-            <div class="field full">
-              <label for="title">หัวข้อประชุม</label>
-              <input id="title" name="title" placeholder="เช่น ประชุมวางแผนรายสัปดาห์" required>
-            </div>
-
-            <div class="field">
-              <label for="requesterName">ชื่อผู้จอง</label>
-              <input id="requesterName" name="requesterName" placeholder="ชื่อ-นามสกุล" required>
-            </div>
-
-            <div class="field">
-              <label for="requesterEmail">อีเมลผู้จอง</label>
-              <input id="requesterEmail" name="requesterEmail" type="email" placeholder="name@company.com" required>
-            </div>
-
-            <div class="time-group full">
-              <div class="time-group-title">
-                <strong>วันและเวลาเริ่ม</strong>
-                <span>รูปแบบ dd/mm/yyyy และ HH:mm</span>
-              </div>
-              <div class="time-fields">
-                <div class="field">
-                  <label for="startDate">วันที่เริ่ม</label>
-                  <input id="startDate" name="startDate" inputmode="numeric" placeholder="dd/mm/yyyy" maxlength="10" autocomplete="off" required>
-                </div>
-                <div class="field">
-                  <label for="startClock">เวลาเริ่ม</label>
-                  <input id="startClock" name="startClock" inputmode="numeric" placeholder="HH:mm" maxlength="5" autocomplete="off" required>
-                </div>
-              </div>
-            </div>
-
-            <div class="time-group full">
-              <div class="time-group-title">
-                <strong>วันและเวลาสิ้นสุด</strong>
-                <span>ใช้เวลา 24 ชั่วโมง เช่น 09:30, 14:00</span>
-              </div>
-              <div class="time-fields">
-                <div class="field">
-                  <label for="endDate">วันที่สิ้นสุด</label>
-                  <input id="endDate" name="endDate" inputmode="numeric" placeholder="dd/mm/yyyy" maxlength="10" autocomplete="off" required>
-                </div>
-                <div class="field">
-                  <label for="endClock">เวลาสิ้นสุด</label>
-                  <input id="endClock" name="endClock" inputmode="numeric" placeholder="HH:mm" maxlength="5" autocomplete="off" required>
-                </div>
-              </div>
-            </div>
-
-            <div class="meeting-toggle full" role="radiogroup" aria-label="รูปแบบประชุม">
-              <label>
-                <input type="radio" name="meetingType" value="ONSITE" checked>
-                <span>
-                  <strong>ประชุมในห้อง</strong>
-                  <small>ใช้ห้องประชุมตามเวลาที่เลือก</small>
-                </span>
-              </label>
-              <label>
-                <input type="radio" name="meetingType" value="ONLINE">
-                <span>
-                  <strong>ออนไลน์ + Google Meet</strong>
-                  <small>สร้าง Calendar event และ Meet URL</small>
-                </span>
-              </label>
-            </div>
-
-            <div class="field full">
-              <label for="notes">หมายเหตุ</label>
-              <textarea id="notes" name="notes" rows="4" placeholder="รายละเอียดเพิ่มเติม เช่น agenda, ผู้เข้าร่วม, อุปกรณ์ที่ต้องใช้"></textarea>
-            </div>
-
-            <div class="form-actions full">
-              <button type="button" class="secondary" id="resetButton">ล้างข้อมูล</button>
-              <button type="submit" id="submitButton">จองห้องประชุม</button>
-            </div>
-          </form>
-        </section>
-
-        <aside class="side-stack">
-          <section class="panel summary-panel">
+      <section id="tab-booking" class="tab-view active">
+        <section class="content-grid">
+          <section class="panel booking-panel">
             <div class="panel-heading">
               <div>
-                <p class="eyebrow">Today</p>
-                <h2>ภาพรวม</h2>
+                <p class="eyebrow">New Booking</p>
+                <h2>สร้างรายการจอง</h2>
               </div>
+              <span class="pill">วันที่ dd/mm/yyyy · เวลา 24 ชม.</span>
             </div>
-            <div class="metrics">
-              <div>
-                <strong id="metricBookings">0</strong>
-                <span>รายการจอง</span>
+
+            <form id="bookingForm" class="booking-form" novalidate>
+              <div class="field full">
+                <label for="roomSelect">ห้องประชุม / ทรัพยากร</label>
+                <select name="roomId" id="roomSelect" required></select>
               </div>
+
+              <div class="field full">
+                <label for="title">หัวข้อประชุม</label>
+                <input id="title" name="title" placeholder="เช่น ประชุมวางแผนรายสัปดาห์" required>
+              </div>
+
+              <div class="field">
+                <label for="requesterName">ชื่อผู้จอง</label>
+                <input id="requesterName" name="requesterName" placeholder="ชื่อ-นามสกุล" required>
+              </div>
+
+              <div class="field">
+                <label for="requesterEmail">อีเมลผู้จอง</label>
+                <input id="requesterEmail" name="requesterEmail" type="email" placeholder="name@company.com" required>
+              </div>
+
+              <div class="time-group full">
+                <div class="time-group-title">
+                  <strong>วันและเวลาเริ่ม</strong>
+                  <span>dd/mm/yyyy และ HH:mm</span>
+                </div>
+                <div class="time-fields">
+                  <div class="field">
+                    <label for="startDate">วันที่เริ่ม</label>
+                    <input id="startDate" name="startDate" inputmode="numeric" placeholder="dd/mm/yyyy" maxlength="10" autocomplete="off" required>
+                  </div>
+                  <div class="field">
+                    <label for="startClock">เวลาเริ่ม</label>
+                    <input id="startClock" name="startClock" inputmode="numeric" placeholder="HH:mm" maxlength="5" autocomplete="off" required>
+                  </div>
+                </div>
+              </div>
+
+              <div class="time-group full">
+                <div class="time-group-title">
+                  <strong>วันและเวลาสิ้นสุด</strong>
+                  <span>ใช้เวลา 24 ชั่วโมง เช่น 09:30, 14:00</span>
+                </div>
+                <div class="time-fields">
+                  <div class="field">
+                    <label for="endDate">วันที่สิ้นสุด</label>
+                    <input id="endDate" name="endDate" inputmode="numeric" placeholder="dd/mm/yyyy" maxlength="10" autocomplete="off" required>
+                  </div>
+                  <div class="field">
+                    <label for="endClock">เวลาสิ้นสุด</label>
+                    <input id="endClock" name="endClock" inputmode="numeric" placeholder="HH:mm" maxlength="5" autocomplete="off" required>
+                  </div>
+                </div>
+              </div>
+
+              <div class="meeting-toggle full" role="radiogroup" aria-label="รูปแบบประชุม">
+                <label>
+                  <input type="radio" name="meetingType" value="ONSITE" checked>
+                  <span>
+                    <strong>ประชุมในห้อง</strong>
+                    <small>ใช้ห้องประชุมตามเวลาที่เลือก</small>
+                  </span>
+                </label>
+                <label>
+                  <input type="radio" name="meetingType" value="ONLINE">
+                  <span>
+                    <strong>ออนไลน์ + Google Meet</strong>
+                    <small>สร้าง Calendar event และ Meet URL</small>
+                  </span>
+                </label>
+              </div>
+
+              <div class="field full">
+                <label for="notes">หมายเหตุ</label>
+                <textarea id="notes" name="notes" rows="4" placeholder="รายละเอียดเพิ่มเติม เช่น agenda, ผู้เข้าร่วม, อุปกรณ์ที่ต้องใช้"></textarea>
+              </div>
+
+              <div class="form-actions full">
+                <button type="button" class="secondary" id="resetButton">ล้างข้อมูล</button>
+                <button type="submit" id="submitButton">จองห้องประชุม</button>
+              </div>
+            </form>
+          </section>
+
+          <aside class="side-stack">
+            <section class="panel summary-panel">
+              <div class="panel-heading">
+                <div>
+                  <p class="eyebrow">Overview</p>
+                  <h2>ภาพรวม</h2>
+                </div>
+              </div>
+              <div class="metrics">
+                <div>
+                  <strong id="metricBookings">0</strong>
+                  <span>รายการจอง</span>
+                </div>
+                <div>
+                  <strong id="metricRooms">0</strong>
+                  <span>ห้องพร้อมใช้</span>
+                </div>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-heading">
+                <div>
+                  <p class="eyebrow">Recent</p>
+                  <h2>รายการจองล่าสุด</h2>
+                </div>
+                <button type="button" class="icon-button" id="refreshButton" title="โหลดรายการใหม่">↻</button>
+              </div>
+              <div id="bookings" class="booking-list"></div>
+            </section>
+          </aside>
+        </section>
+      </section>
+
+      <section id="tab-calendar" class="tab-view">
+        <section class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Calendar & Filters</p>
+              <h2>ปฏิทินการจองและค้นหารายการ</h2>
+            </div>
+            <button type="button" id="calendarRefreshButton">โหลดข้อมูลใหม่</button>
+          </div>
+
+          <div class="filter-grid">
+            <div class="field">
+              <label for="filterRoom">ห้องประชุม</label>
+              <select id="filterRoom"></select>
+            </div>
+            <div class="field">
+              <label for="filterType">รูปแบบประชุม</label>
+              <select id="filterType">
+                <option value="">ทั้งหมด</option>
+                <option value="ONSITE">ประชุมในห้อง</option>
+                <option value="ONLINE">ออนไลน์</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="filterFromDate">ตั้งแต่วันที่</label>
+              <input id="filterFromDate" inputmode="numeric" placeholder="dd/mm/yyyy" maxlength="10" autocomplete="off">
+            </div>
+            <div class="field">
+              <label for="filterToDate">ถึงวันที่</label>
+              <input id="filterToDate" inputmode="numeric" placeholder="dd/mm/yyyy" maxlength="10" autocomplete="off">
+            </div>
+            <div class="field full">
+              <label for="filterSearch">ค้นหา</label>
+              <input id="filterSearch" placeholder="ค้นหาจากหัวข้อ ผู้จอง อีเมล หรือชื่อห้อง">
+            </div>
+          </div>
+
+          <div class="calendar-summary">
+            <div><strong id="filteredCount">0</strong><span>รายการที่พบ</span></div>
+            <div><strong id="onlineCount">0</strong><span>ออนไลน์</span></div>
+            <div><strong id="onsiteCount">0</strong><span>ในห้อง</span></div>
+          </div>
+
+          <div id="calendarBoard" class="calendar-board"></div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>วันเวลา</th>
+                  <th>หัวข้อ</th>
+                  <th>ห้อง</th>
+                  <th>ผู้จอง</th>
+                  <th>ประเภท</th>
+                  <th>Meet</th>
+                </tr>
+              </thead>
+              <tbody id="bookingTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+
+      <section id="tab-admin" class="tab-view">
+        <section class="content-grid">
+          <section class="panel">
+            <div class="panel-heading">
               <div>
-                <strong id="metricRooms">0</strong>
-                <span>ห้องพร้อมใช้</span>
+                <p class="eyebrow">Admin Login</p>
+                <h2>เข้าสู่ระบบผู้ดูแล</h2>
+              </div>
+              <span id="adminState" class="pill">ยังไม่ได้เข้าสู่ระบบ</span>
+            </div>
+            <div class="admin-form">
+              <div class="field">
+                <label for="adminUsername">อีเมลผู้ดูแล</label>
+                <input id="adminUsername" placeholder="tsmile.it.official@gmail.com">
+              </div>
+              <div class="field">
+                <label for="adminPassword">รหัสผ่าน</label>
+                <input id="adminPassword" type="password" placeholder="รหัสผ่านผู้ดูแล">
+              </div>
+              <div class="form-actions">
+                <button type="button" id="adminLoginButton">เข้าสู่ระบบผู้ดูแล</button>
+                <button type="button" class="secondary" id="adminLogoutButton" disabled>ออกจากระบบ</button>
               </div>
             </div>
           </section>
@@ -141,27 +251,46 @@
           <section class="panel">
             <div class="panel-heading">
               <div>
-                <p class="eyebrow">Recent</p>
-                <h2>รายการจองล่าสุด</h2>
+                <p class="eyebrow">Dashboard</p>
+                <h2>Dashboard ผู้ดูแล</h2>
               </div>
-              <button type="button" class="icon-button" id="refreshButton" title="โหลดรายการใหม่">↻</button>
+              <button type="button" class="secondary" id="adminDashboardButton" disabled>โหลด Dashboard</button>
             </div>
-            <div id="bookings" class="booking-list"></div>
-          </section>
-
-          <section class="panel admin-panel">
-            <details>
-              <summary>ผู้ดูแลระบบ / Diagnostics</summary>
-              <div class="admin-form">
-                <input id="adminUsername" placeholder="อีเมลผู้ดูแล">
-                <input id="adminPassword" type="password" placeholder="รหัสผ่าน">
-                <button type="button" id="adminLoginButton">เข้าสู่ระบบผู้ดูแล</button>
-                <button type="button" class="secondary" id="diagnosticsButton" disabled>ตรวจระบบ</button>
+            <div class="metrics admin-metrics">
+              <div>
+                <strong id="adminTotalBookings">0</strong>
+                <span>จองทั้งหมด</span>
               </div>
-              <pre id="diagnosticsResult"></pre>
-            </details>
+              <div>
+                <strong id="adminOnlineBookings">0</strong>
+                <span>Online</span>
+              </div>
+              <div>
+                <strong id="adminOnsiteBookings">0</strong>
+                <span>Onsite</span>
+              </div>
+              <div>
+                <strong id="adminActiveRooms">0</strong>
+                <span>ห้องใช้งาน</span>
+              </div>
+            </div>
+            <div id="adminRecentBookings" class="booking-list admin-list"></div>
           </section>
-        </aside>
+        </section>
+      </section>
+
+      <section id="tab-diagnostics" class="tab-view">
+        <section class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">System Diagnostics</p>
+              <h2>ตรวจระบบหลัง Deploy</h2>
+            </div>
+            <button type="button" id="diagnosticsButton" disabled>ตรวจระบบ</button>
+          </div>
+          <p class="helper-text">ต้องเข้าสู่ระบบผู้ดูแลก่อน แล้วหน้านี้จะตรวจ Spreadsheet, Schema, Calendar, Google Meet, Cache, Lock และ Web App config</p>
+          <pre id="diagnosticsResult">ยังไม่ได้รัน diagnostics</pre>
+        </section>
       </section>
     </main>
 

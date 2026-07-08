@@ -2,7 +2,8 @@
   const state = {
     rooms: [],
     bookings: [],
-    adminSessionToken: ''
+    adminSessionToken: '',
+    currentTab: 'booking'
   };
 
   const statusEl = document.getElementById('status');
@@ -15,11 +16,6 @@
   const toastEl = document.getElementById('toast');
   const metricBookings = document.getElementById('metricBookings');
   const metricRooms = document.getElementById('metricRooms');
-  const adminUsername = document.getElementById('adminUsername');
-  const adminPassword = document.getElementById('adminPassword');
-  const adminLoginButton = document.getElementById('adminLoginButton');
-  const diagnosticsButton = document.getElementById('diagnosticsButton');
-  const diagnosticsResult = document.getElementById('diagnosticsResult');
   const loadingModal = document.getElementById('loadingModal');
   const loadingText = document.getElementById('loadingText');
   const resultModal = document.getElementById('resultModal');
@@ -28,6 +24,32 @@
   const resultMessage = document.getElementById('resultMessage');
   const resultActions = document.getElementById('resultActions');
   const resultCloseButton = document.getElementById('resultCloseButton');
+
+  const filterRoom = document.getElementById('filterRoom');
+  const filterType = document.getElementById('filterType');
+  const filterFromDate = document.getElementById('filterFromDate');
+  const filterToDate = document.getElementById('filterToDate');
+  const filterSearch = document.getElementById('filterSearch');
+  const filteredCount = document.getElementById('filteredCount');
+  const onlineCount = document.getElementById('onlineCount');
+  const onsiteCount = document.getElementById('onsiteCount');
+  const calendarBoard = document.getElementById('calendarBoard');
+  const bookingTableBody = document.getElementById('bookingTableBody');
+  const calendarRefreshButton = document.getElementById('calendarRefreshButton');
+
+  const adminUsername = document.getElementById('adminUsername');
+  const adminPassword = document.getElementById('adminPassword');
+  const adminLoginButton = document.getElementById('adminLoginButton');
+  const adminLogoutButton = document.getElementById('adminLogoutButton');
+  const adminDashboardButton = document.getElementById('adminDashboardButton');
+  const adminState = document.getElementById('adminState');
+  const diagnosticsButton = document.getElementById('diagnosticsButton');
+  const diagnosticsResult = document.getElementById('diagnosticsResult');
+  const adminTotalBookings = document.getElementById('adminTotalBookings');
+  const adminOnlineBookings = document.getElementById('adminOnlineBookings');
+  const adminOnsiteBookings = document.getElementById('adminOnsiteBookings');
+  const adminActiveRooms = document.getElementById('adminActiveRooms');
+  const adminRecentBookings = document.getElementById('adminRecentBookings');
 
   function callApi(action, data) {
     return new Promise((resolve, reject) => {
@@ -117,17 +139,28 @@
     return `${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
   }
 
+  function parseDateOnly(dateText, label, endOfDay) {
+    if (!dateText) return null;
+    const dateMatch = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(String(dateText || '').trim());
+    if (!dateMatch) {
+      throw new Error(`${label}: กรุณาใส่วันที่เป็น dd/mm/yyyy เช่น 08/07/2026`);
+    }
+    const day = Number(dateMatch[1]);
+    const month = Number(dateMatch[2]);
+    const year = Number(dateMatch[3]);
+    const parsed = new Date(year, month - 1, day, endOfDay ? 23 : 0, endOfDay ? 59 : 0, endOfDay ? 59 : 0, 0);
+    if (parsed.getFullYear() !== year || parsed.getMonth() !== month - 1 || parsed.getDate() !== day) {
+      throw new Error(`${label}: วันที่ไม่ถูกต้อง`);
+    }
+    return parsed;
+  }
+
   function parseThaiDateTime(dateText, timeText, label) {
     const dateMatch = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(String(dateText || '').trim());
     const timeMatch = /^([01]\d|2[0-3]):([0-5]\d)$/.exec(String(timeText || '').trim());
 
-    if (!dateMatch) {
-      throw new Error(`${label}: กรุณาใส่วันที่เป็น dd/mm/yyyy เช่น 08/07/2026`);
-    }
-
-    if (!timeMatch) {
-      throw new Error(`${label}: กรุณาใส่เวลาแบบ 24 ชั่วโมง เช่น 09:30 หรือ 14:00`);
-    }
+    if (!dateMatch) throw new Error(`${label}: กรุณาใส่วันที่เป็น dd/mm/yyyy เช่น 08/07/2026`);
+    if (!timeMatch) throw new Error(`${label}: กรุณาใส่เวลาแบบ 24 ชั่วโมง เช่น 09:30 หรือ 14:00`);
 
     const day = Number(dateMatch[1]);
     const month = Number(dateMatch[2]);
@@ -169,6 +202,10 @@
     return `${formatDateInput(date)} ${formatTimeInput(date)} น.`;
   }
 
+  function formatDayKey(value) {
+    return formatDateInput(new Date(value));
+  }
+
   function setDefaultTimes() {
     const start = new Date();
     start.setMinutes(start.getMinutes() < 30 ? 30 : 60, 0, 0);
@@ -183,7 +220,6 @@
     const data = Object.fromEntries(new FormData(form).entries());
     const start = parseThaiDateTime(data.startDate, data.startClock, 'เวลาเริ่ม');
     const end = parseThaiDateTime(data.endDate, data.endClock, 'เวลาสิ้นสุด');
-
     data.startTime = start.toISOString();
     data.endTime = end.toISOString();
     delete data.startDate;
@@ -198,30 +234,145 @@
       const capacity = room.capacity ? ` · ${room.capacity} ที่นั่ง` : '';
       return `<option value="${escapeHtml(room.id)}">${escapeHtml(room.name)}${capacity}</option>`;
     }).join('');
+
+    filterRoom.innerHTML = '<option value="">ทุกห้อง</option>' + state.rooms.map((room) => {
+      return `<option value="${escapeHtml(room.id)}">${escapeHtml(room.name)}</option>`;
+    }).join('');
     metricRooms.textContent = state.rooms.length;
+  }
+
+  function bookingCardHtml(item) {
+    const typeLabel = item.meetingType === 'ONLINE' ? 'Online' : 'Onsite';
+    return `
+      <article class="booking-card">
+        <header>
+          <h3>${escapeHtml(item.title)}</h3>
+          <span class="badge">${typeLabel}</span>
+        </header>
+        <p>${escapeHtml(item.roomName)}<br>${formatDateTime(item.startTime)} - ${formatDateTime(item.endTime)}</p>
+        <p>ผู้จอง: ${escapeHtml(item.requesterName || item.requesterEmail)}</p>
+        ${item.meetUrl ? `<a class="meet-link" href="${escapeHtml(item.meetUrl)}" target="_blank" rel="noopener">เปิด Google Meet</a>` : ''}
+      </article>
+    `;
   }
 
   function renderBookings(items) {
     metricBookings.textContent = items.length;
-    bookingsEl.innerHTML = items.length ? items.slice(0, 8).map((item) => {
-      const typeLabel = item.meetingType === 'ONLINE' ? 'Online' : 'Onsite';
-      return `
-        <article class="booking-card">
-          <header>
-            <h3>${escapeHtml(item.title)}</h3>
-            <span class="badge">${typeLabel}</span>
-          </header>
-          <p>${escapeHtml(item.roomName)}<br>${formatDateTime(item.startTime)} - ${formatDateTime(item.endTime)}</p>
-          <p>ผู้จอง: ${escapeHtml(item.requesterName || item.requesterEmail)}</p>
-          ${item.meetUrl ? `<a class="meet-link" href="${escapeHtml(item.meetUrl)}" target="_blank" rel="noopener">เปิด Google Meet</a>` : ''}
-        </article>
-      `;
-    }).join('') : '<div class="empty">ยังไม่มีรายการจองล่าสุด</div>';
+    bookingsEl.innerHTML = items.length ? items.slice(0, 8).map(bookingCardHtml).join('') : '<div class="empty">ยังไม่มีรายการจองล่าสุด</div>';
+  }
+
+  function getFilteredBookings() {
+    let fromDate = null;
+    let toDate = null;
+    if (filterFromDate.value) fromDate = parseDateOnly(filterFromDate.value, 'ตั้งแต่วันที่', false);
+    if (filterToDate.value) toDate = parseDateOnly(filterToDate.value, 'ถึงวันที่', true);
+
+    const query = filterSearch.value.trim().toLowerCase();
+    return state.bookings.filter((item) => {
+      const start = new Date(item.startTime);
+      const searchable = [item.title, item.roomName, item.requesterName, item.requesterEmail, item.meetingType].join(' ').toLowerCase();
+      if (filterRoom.value && item.roomId !== filterRoom.value) return false;
+      if (filterType.value && item.meetingType !== filterType.value) return false;
+      if (fromDate && start < fromDate) return false;
+      if (toDate && start > toDate) return false;
+      if (query && !searchable.includes(query)) return false;
+      return true;
+    }).sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
+  }
+
+  function renderCalendar() {
+    let items = [];
+    try {
+      items = getFilteredBookings();
+    } catch (error) {
+      showToast(error.message, 'error');
+      return;
+    }
+
+    filteredCount.textContent = items.length;
+    onlineCount.textContent = items.filter((item) => item.meetingType === 'ONLINE').length;
+    onsiteCount.textContent = items.filter((item) => item.meetingType !== 'ONLINE').length;
+
+    if (!items.length) {
+      calendarBoard.innerHTML = '<div class="empty">ไม่พบรายการจองตามเงื่อนไข</div>';
+      bookingTableBody.innerHTML = '<tr><td colspan="6">ไม่พบรายการจอง</td></tr>';
+      return;
+    }
+
+    const groups = items.reduce((acc, item) => {
+      const key = formatDayKey(item.startTime);
+      acc[key] = acc[key] || [];
+      acc[key].push(item);
+      return acc;
+    }, {});
+
+    calendarBoard.innerHTML = Object.keys(groups).map((day) => `
+      <section class="day-column">
+        <h3>${day}</h3>
+        ${groups[day].map((item) => `
+          <div class="calendar-event">
+            <strong>${formatTimeInput(new Date(item.startTime))} - ${formatTimeInput(new Date(item.endTime))}</strong>
+            <span>${escapeHtml(item.title)}</span>
+            <small>${escapeHtml(item.roomName)} · ${item.meetingType === 'ONLINE' ? 'Online' : 'Onsite'}</small>
+          </div>
+        `).join('')}
+      </section>
+    `).join('');
+
+    bookingTableBody.innerHTML = items.map((item) => `
+      <tr>
+        <td>${formatDateTime(item.startTime)}<br><span class="muted">${formatDateTime(item.endTime)}</span></td>
+        <td>${escapeHtml(item.title)}</td>
+        <td>${escapeHtml(item.roomName)}</td>
+        <td>${escapeHtml(item.requesterName || item.requesterEmail)}</td>
+        <td>${item.meetingType === 'ONLINE' ? 'Online' : 'Onsite'}</td>
+        <td>${item.meetUrl ? `<a href="${escapeHtml(item.meetUrl)}" target="_blank" rel="noopener">เปิด</a>` : '-'}</td>
+      </tr>
+    `).join('');
   }
 
   async function refreshBookings() {
     state.bookings = await callApi('listBookings');
     renderBookings(state.bookings);
+    renderCalendar();
+  }
+
+  function setAdminLoggedIn(session) {
+    state.adminSessionToken = session ? session.sessionToken : '';
+    adminState.textContent = session ? `เข้าสู่ระบบ: ${session.username}` : 'ยังไม่ได้เข้าสู่ระบบ';
+    diagnosticsButton.disabled = !session;
+    adminDashboardButton.disabled = !session;
+    adminLogoutButton.disabled = !session;
+  }
+
+  function switchTab(tabName) {
+    state.currentTab = tabName;
+    document.querySelectorAll('.tab-button').forEach((button) => {
+      button.classList.toggle('active', button.dataset.tab === tabName);
+    });
+    document.querySelectorAll('.tab-view').forEach((view) => {
+      view.classList.toggle('active', view.id === `tab-${tabName}`);
+    });
+    if (tabName === 'calendar') renderCalendar();
+  }
+
+  async function loadAdminDashboard() {
+    showLoading('กำลังโหลด Dashboard ผู้ดูแล...');
+    try {
+      const dashboard = await callApi('adminDashboard', { sessionToken: state.adminSessionToken });
+      adminTotalBookings.textContent = dashboard.totalBookings || 0;
+      adminOnlineBookings.textContent = dashboard.onlineBookings || 0;
+      adminOnsiteBookings.textContent = dashboard.onsiteBookings || 0;
+      adminActiveRooms.textContent = dashboard.activeRooms || 0;
+      adminRecentBookings.innerHTML = dashboard.recentBookings && dashboard.recentBookings.length
+        ? dashboard.recentBookings.map(bookingCardHtml).join('')
+        : '<div class="empty">ยังไม่มีข้อมูล Dashboard</div>';
+      showToast('โหลด Dashboard แล้ว', 'success');
+    } catch (error) {
+      showResult({ eyebrow: 'Admin Dashboard', title: 'โหลด Dashboard ไม่สำเร็จ', message: error.message });
+    } finally {
+      hideLoading();
+    }
   }
 
   async function load() {
@@ -235,11 +386,7 @@
       setStatus(`พร้อมใช้งาน · เจ้าของระบบ ${bootstrap.settings.ownerEmail}`, 'success');
     } catch (error) {
       setStatus(error.message, 'error');
-      showResult({
-        eyebrow: 'Load Error',
-        title: 'โหลดระบบไม่สำเร็จ',
-        message: error.message
-      });
+      showResult({ eyebrow: 'Load Error', title: 'โหลดระบบไม่สำเร็จ', message: error.message });
     } finally {
       hideLoading();
     }
@@ -251,11 +398,7 @@
     try {
       data = buildBookingPayload();
     } catch (error) {
-      showResult({
-        eyebrow: 'ตรวจข้อมูล',
-        title: 'กรุณาตรวจวันที่และเวลา',
-        message: error.message
-      });
+      showResult({ eyebrow: 'ตรวจข้อมูล', title: 'กรุณาตรวจวันที่และเวลา', message: error.message });
       return;
     }
 
@@ -269,7 +412,6 @@
       form.reset();
       setDefaultTimes();
       await refreshBookings();
-
       if (booking.meetUrl) {
         setStatus('จองสำเร็จและสร้าง Google Meet แล้ว', 'success');
         showResult({
@@ -288,11 +430,7 @@
       }
     } catch (error) {
       setStatus(error.message, 'error');
-      showResult({
-        eyebrow: 'Booking Error',
-        title: 'จองไม่สำเร็จ',
-        message: error.message
-      });
+      showResult({ eyebrow: 'Booking Error', title: 'จองไม่สำเร็จ', message: error.message });
     } finally {
       hideLoading();
       submitButton.disabled = false;
@@ -312,14 +450,22 @@
       await refreshBookings();
       showToast('โหลดรายการล่าสุดแล้ว', 'success');
     } catch (error) {
-      showResult({
-        eyebrow: 'Refresh Error',
-        title: 'โหลดรายการไม่สำเร็จ',
-        message: error.message
-      });
+      showResult({ eyebrow: 'Refresh Error', title: 'โหลดรายการไม่สำเร็จ', message: error.message });
     } finally {
       hideLoading();
       refreshButton.disabled = false;
+    }
+  });
+
+  calendarRefreshButton.addEventListener('click', async () => {
+    showLoading('กำลังโหลดปฏิทินการจอง...');
+    try {
+      await refreshBookings();
+      showToast('โหลดปฏิทินแล้ว', 'success');
+    } catch (error) {
+      showResult({ eyebrow: 'Calendar', title: 'โหลดปฏิทินไม่สำเร็จ', message: error.message });
+    } finally {
+      hideLoading();
     }
   });
 
@@ -332,46 +478,49 @@
         username: adminUsername.value,
         password: adminPassword.value
       });
-      state.adminSessionToken = session.sessionToken;
-      diagnosticsButton.disabled = false;
+      setAdminLoggedIn(session);
       adminPassword.value = '';
       showToast('เข้าสู่ระบบผู้ดูแลแล้ว', 'success');
+      await loadAdminDashboard();
     } catch (error) {
-      showResult({
-        eyebrow: 'Admin Login',
-        title: 'เข้าสู่ระบบไม่สำเร็จ',
-        message: error.message
-      });
+      showResult({ eyebrow: 'Admin Login', title: 'เข้าสู่ระบบไม่สำเร็จ', message: error.message });
     } finally {
       hideLoading();
       adminLoginButton.disabled = false;
     }
   });
 
+  adminLogoutButton.addEventListener('click', () => {
+    setAdminLoggedIn(null);
+    adminRecentBookings.innerHTML = '<div class="empty">เข้าสู่ระบบเพื่อดู Dashboard</div>';
+    diagnosticsResult.textContent = 'ยังไม่ได้รัน diagnostics';
+    showToast('ออกจากระบบผู้ดูแลแล้ว', 'success');
+  });
+
+  adminDashboardButton.addEventListener('click', loadAdminDashboard);
+
   diagnosticsButton.addEventListener('click', async () => {
     diagnosticsButton.disabled = true;
     diagnosticsResult.textContent = 'กำลังตรวจระบบ...';
     showLoading('กำลังตรวจระบบ...');
     try {
-      const report = await callApi('diagnostics', {
-        sessionToken: state.adminSessionToken
-      });
+      const report = await callApi('diagnostics', { sessionToken: state.adminSessionToken });
       diagnosticsResult.textContent = JSON.stringify(report, null, 2);
       showToast(report.ok ? 'Diagnostics ผ่านแล้ว' : 'Diagnostics พบรายการที่ต้องตรวจต่อ', report.ok ? 'success' : 'error');
     } catch (error) {
       diagnosticsResult.textContent = error.message;
-      showResult({
-        eyebrow: 'Diagnostics',
-        title: 'ตรวจระบบไม่สำเร็จ',
-        message: error.message
-      });
+      showResult({ eyebrow: 'Diagnostics', title: 'ตรวจระบบไม่สำเร็จ', message: error.message });
     } finally {
       hideLoading();
       diagnosticsButton.disabled = false;
     }
   });
 
-  document.querySelectorAll('#startDate, #endDate').forEach((input) => {
+  document.querySelectorAll('.tab-button').forEach((button) => {
+    button.addEventListener('click', () => switchTab(button.dataset.tab));
+  });
+
+  document.querySelectorAll('#startDate, #endDate, #filterFromDate, #filterToDate').forEach((input) => {
     input.addEventListener('input', () => applyDateMask(input));
   });
 
@@ -379,10 +528,16 @@
     input.addEventListener('input', () => applyTimeMask(input));
   });
 
+  [filterRoom, filterType, filterFromDate, filterToDate, filterSearch].forEach((input) => {
+    input.addEventListener('input', renderCalendar);
+    input.addEventListener('change', renderCalendar);
+  });
+
   resultCloseButton.addEventListener('click', hideResult);
   resultModal.addEventListener('click', (event) => {
     if (event.target === resultModal) hideResult();
   });
 
+  adminRecentBookings.innerHTML = '<div class="empty">เข้าสู่ระบบเพื่อดู Dashboard</div>';
   load();
 </script>
