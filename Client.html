@@ -415,7 +415,7 @@
       state.rooms = bootstrap.rooms || [];
       renderRooms();
       await refreshBookings();
-      setStatus(`พร้อมใช้งาน · เจ้าของระบบ ${bootstrap.settings.ownerEmail}`, 'success');
+      setStatus('พร้อมใช้งาน', 'success');
     } catch (error) {
       setStatus(error.message, 'error');
       showResult({ eyebrow: 'Load Error', title: 'โหลดระบบไม่สำเร็จ', message: error.message });
