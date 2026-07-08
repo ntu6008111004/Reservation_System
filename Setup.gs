@@ -89,6 +89,31 @@ function repairDatabaseSchema() {
   return verifyDatabaseSchema();
 }
 
+function clearBookingDataForTesting(actor) {
+  setupDatabase();
+  var bookings = DatabaseService.listObjects('bookings');
+  var calendarCleanup = bookings
+    .filter(function (booking) { return booking.calendarEventId; })
+    .map(function (booking) {
+      return Utils.safeRun('deleteCalendarEvent:' + booking.id, function () {
+        return CalendarService.deleteEvent(booking.calendarEventId);
+      });
+    });
+  var clearedBookings = DatabaseService.clearObjects('bookings');
+  var clearedIndex = DatabaseService.clearObjects('booking_index');
+  AuditLogService.log(actor || 'SYSTEM', 'BOOKING_DATA_CLEARED', 'maintenance', 'clearBookingDataForTesting', {
+    bookings: clearedBookings.clearedRows,
+    bookingIndex: clearedIndex.clearedRows,
+    calendarCleanup: calendarCleanup
+  });
+  return {
+    status: 'cleared',
+    bookings: clearedBookings.clearedRows,
+    bookingIndex: clearedIndex.clearedRows,
+    calendarCleanup: calendarCleanup
+  };
+}
+
 function setupInitialAdmin(username, temporaryPassword) {
   setupDatabase();
   return AdminAuthService.createAdmin(username || 'tsmile.it.official@gmail.com', temporaryPassword);

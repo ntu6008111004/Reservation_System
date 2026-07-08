@@ -61,6 +61,13 @@ var DatabaseService = (function () {
     return object;
   }
 
+  function clearObjects(name) {
+    var sheet = ensureSheet(name);
+    var lastRow = sheet.getLastRow();
+    if (lastRow > 1) sheet.deleteRows(2, lastRow - 1);
+    return { sheet: name, clearedRows: Math.max(lastRow - 1, 0) };
+  }
+
   function upsertByKey(name, keyField, keyValue, object) {
     var sheet = ensureSheet(name);
     var allHeaders = headers(name);
@@ -88,6 +95,7 @@ var DatabaseService = (function () {
     headers: headers,
     listObjects: listObjects,
     appendObject: appendObject,
+    clearObjects: clearObjects,
     upsertByKey: upsertByKey,
     findByKey: findByKey
   };

@@ -1,5 +1,6 @@
 function routeApi(action, data) {
   try {
+    data = data || {};
     switch (action) {
       case 'bootstrap':
         return ResponseService.success({
@@ -9,7 +10,7 @@ function routeApi(action, data) {
       case 'createBooking':
         return ResponseService.success(BookingService.createBooking(data));
       case 'listBookings':
-        return ResponseService.success(BookingService.listBookings(data));
+        return ResponseService.success(BookingService.listBookings({ status: 'CONFIRMED' }));
       case 'adminLogin':
         return ResponseService.success(AdminAuthService.login(data.username, data.password));
       case 'adminDashboard':
@@ -35,6 +36,9 @@ function routeApi(action, data) {
       case 'adminAuditLogs':
         AdminAuthService.requireSession(data.sessionToken);
         return ResponseService.success(AuditLogService.listLatest(data.limit || 100));
+      case 'adminClearBookingData':
+        var clearSession = AdminAuthService.requireSession(data.sessionToken);
+        return ResponseService.success(clearBookingDataForTesting(clearSession.username));
       case 'diagnostics':
         AdminAuthService.requireSession(data.sessionToken);
         return ResponseService.success(runSystemDiagnostics());

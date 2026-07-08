@@ -78,10 +78,12 @@
   const adminRoomsGrid = document.getElementById('adminRoomsGrid');
   const adminAuditButton = document.getElementById('adminAuditButton');
   const adminAuditTableBody = document.getElementById('adminAuditTableBody');
+  const adminClearBookingDataButton = document.getElementById('adminClearBookingDataButton');
   const adminTotalBookings = document.getElementById('adminTotalBookings');
   const adminOnlineBookings = document.getElementById('adminOnlineBookings');
   const adminOnsiteBookings = document.getElementById('adminOnsiteBookings');
   const adminOffsiteBookings = document.getElementById('adminOffsiteBookings');
+  const adminCancelledBookings = document.getElementById('adminCancelledBookings');
   const adminActiveRooms = document.getElementById('adminActiveRooms');
   const adminRecentBookings = document.getElementById('adminRecentBookings');
 
@@ -568,6 +570,7 @@
     adminBookingsButton.disabled = !session;
     adminRoomsButton.disabled = !session;
     adminAuditButton.disabled = !session;
+    adminClearBookingDataButton.disabled = !session;
     adminLogoutButton.disabled = !session;
     adminLoginButton.disabled = !!session;
   }
@@ -592,6 +595,7 @@
       adminOnlineBookings.textContent = dashboard.onlineBookings || 0;
       adminOnsiteBookings.textContent = dashboard.onsiteBookings || 0;
       adminOffsiteBookings.textContent = dashboard.offsiteBookings || 0;
+      adminCancelledBookings.textContent = dashboard.cancelledBookings || 0;
       adminActiveRooms.textContent = dashboard.activeRooms || 0;
       adminRecentBookings.innerHTML = dashboard.recentBookings && dashboard.recentBookings.length
         ? dashboard.recentBookings.map(bookingCardHtml).join('')
@@ -855,6 +859,30 @@
   adminBookingsButton.addEventListener('click', loadAdminBookings);
   adminRoomsButton.addEventListener('click', loadAdminRooms);
   adminAuditButton.addEventListener('click', loadAdminAuditLogs);
+  adminClearBookingDataButton.addEventListener('click', async () => {
+    if (!state.adminSessionToken) return;
+    const confirmed = window.confirm('ยืนยันล้างข้อมูลจองทั้งหมด? ระบบจะลบ bookings และ booking_index แต่ไม่ลบ admin, rooms, settings หรือ schema');
+    if (!confirmed) return;
+    adminClearBookingDataButton.disabled = true;
+    showLoading('กำลังล้างข้อมูลจอง...');
+    try {
+      const result = await callApi('adminClearBookingData', { sessionToken: state.adminSessionToken });
+      await refreshBookings();
+      await loadAdminDashboard();
+      await loadAdminBookings();
+      await loadAdminAuditLogs();
+      showResult({
+        eyebrow: 'Maintenance',
+        title: 'ล้างข้อมูลจองแล้ว',
+        message: `ลบ bookings ${result.bookings || 0} รายการ และ booking_index ${result.bookingIndex || 0} รายการ`
+      });
+    } catch (error) {
+      showResult({ eyebrow: 'Maintenance', title: 'ล้างข้อมูลจองไม่สำเร็จ', message: error.message });
+    } finally {
+      hideLoading();
+      adminClearBookingDataButton.disabled = !state.adminSessionToken;
+    }
+  });
 
   adminBookingTableBody.addEventListener('click', async (event) => {
     const button = event.target.closest('.admin-cancel-booking');

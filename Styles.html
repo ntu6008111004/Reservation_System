@@ -13,9 +13,19 @@
   body {
     margin: 0;
     min-height: 100vh;
+    font-size: 16px;
     background:
       radial-gradient(circle at top left, rgba(37, 99, 235, 0.14), transparent 34rem),
       linear-gradient(135deg, #f8fbff 0%, #edf3fb 48%, #f7f9fc 100%);
+  }
+
+  body,
+  input,
+  select,
+  textarea,
+  button {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
 
   .shell {
@@ -195,6 +205,7 @@
   .panel h2 {
     font-size: 24px;
     line-height: 1.25;
+    font-weight: 700;
   }
 
   .pill {
@@ -267,6 +278,11 @@
     background: linear-gradient(135deg, #f8fbff, #eef4ff);
   }
 
+  .danger-zone {
+    border-color: #fed7aa;
+    background: #fffaf5;
+  }
+
   .locked-content {
     max-width: 620px;
     margin: 0 auto;
@@ -291,7 +307,7 @@
 
   label {
     color: #25324b;
-    font-weight: 800;
+    font-weight: 700;
   }
 
   label.required::after {
@@ -311,6 +327,7 @@
     color: #172033;
     background: #ffffff;
     font: inherit;
+    font-weight: 500;
     outline: none;
     transition: border-color 140ms ease, box-shadow 140ms ease, background 140ms ease;
   }
@@ -426,7 +443,7 @@
     color: #ffffff;
     background: #155eef;
     font: inherit;
-    font-weight: 800;
+    font-weight: 700;
     cursor: pointer;
     transition: transform 140ms ease, box-shadow 140ms ease, background 140ms ease;
   }
@@ -489,7 +506,7 @@
   }
 
   .admin-metrics {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     margin-bottom: 16px;
   }
 
@@ -1014,10 +1031,119 @@
     box-shadow: 0 10px 24px rgba(21, 94, 239, 0.18);
   }
 
+  input,
+  select,
+  textarea,
+  button,
+  .booking-card,
+  .calendar-event,
+  td,
+  th {
+    overflow-wrap: anywhere;
+  }
+
+  .modal {
+    max-height: min(92vh, 760px);
+    overflow: auto;
+  }
+
+  @media (max-width: 1100px) {
+    .filter-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .admin-metrics {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .compact-admin-form {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .compact-admin-form .form-actions {
+      grid-column: 1 / -1;
+      justify-content: flex-start;
+    }
+  }
+
   @media (max-width: 900px) {
     .hero,
     .content-grid {
       grid-template-columns: 1fr;
+    }
+
+    .hero {
+      padding: 24px;
+    }
+
+    .top-tabs {
+      position: sticky;
+      top: 0;
+      z-index: 8;
+      overflow-x: auto;
+      flex-wrap: nowrap;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .top-tabs .tab-button {
+      flex: 0 0 auto;
+      white-space: nowrap;
+    }
+
+    .tab-button.admin-tab {
+      margin-left: 0;
+    }
+
+    .admin-resource-card {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+  }
+
+  @media (max-width: 760px) {
+    body {
+      font-size: 15px;
+    }
+
+    .shell {
+      width: min(100% - 24px, 1180px);
+      margin: 14px auto;
+    }
+
+    .hero h1 {
+      font-size: 30px;
+    }
+
+    .panel-heading,
+    .time-group-title {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .panel-heading button,
+    .panel-heading .secondary {
+      width: 100%;
+    }
+
+    .meeting-toggle {
+      grid-template-columns: 1fr;
+    }
+
+    .calendar-summary {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .metrics,
+    .admin-metrics {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .date-picker-control {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .picker-button {
+      width: 100%;
     }
   }
 
@@ -1042,16 +1168,79 @@
       grid-template-columns: 1fr;
     }
 
-    .tab-button.admin-tab {
-      margin-left: 0;
-    }
-
     .form-actions {
       flex-direction: column-reverse;
     }
 
     button {
       width: 100%;
+    }
+
+    .admin-subnav a,
+    .admin-subnav button {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  @media (max-width: 520px) {
+    body {
+      font-size: 14px;
+    }
+
+    .shell {
+      width: min(100% - 14px, 1180px);
+      margin: 7px auto;
+    }
+
+    .hero,
+    .panel,
+    .modal {
+      padding: 16px;
+      border-radius: 16px;
+    }
+
+    .hero h1 {
+      font-size: 26px;
+      line-height: 1.18;
+    }
+
+    .lead {
+      font-size: 15px;
+      line-height: 1.55;
+    }
+
+    .panel h2,
+    .modal h2 {
+      font-size: 20px;
+    }
+
+    input,
+    select,
+    textarea,
+    button {
+      min-height: 44px;
+      padding: 10px 12px;
+    }
+
+    .calendar-summary,
+    .metrics,
+    .admin-metrics {
+      grid-template-columns: 1fr;
+    }
+
+    .date-picker-weekdays,
+    .date-picker-grid {
+      gap: 4px;
+    }
+
+    .date-picker-day {
+      min-height: 38px;
+    }
+
+    th,
+    td {
+      padding: 10px;
     }
   }
 </style>

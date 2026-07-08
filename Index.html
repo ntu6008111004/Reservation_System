@@ -356,6 +356,7 @@
               <a href="#adminRoomsPanel">ทรัพยากร</a>
               <a href="#adminAuditPanel">Audit Log</a>
               <a href="#adminDiagnosticsPanel">Diagnostics</a>
+              <a href="#adminMaintenancePanel">Maintenance</a>
             </div>
           </section>
 
@@ -372,6 +373,7 @@
               <div><strong id="adminOnlineBookings">0</strong><span>Online</span></div>
               <div><strong id="adminOnsiteBookings">0</strong><span>Onsite</span></div>
               <div><strong id="adminOffsiteBookings">0</strong><span>นอกสถานที่</span></div>
+              <div><strong id="adminCancelledBookings">0</strong><span>ยกเลิกแล้ว</span></div>
               <div><strong id="adminActiveRooms">0</strong><span>ทรัพยากร</span></div>
             </div>
             <div id="adminRecentBookings" class="booking-list admin-list"></div>
@@ -448,6 +450,17 @@
             </div>
             <p class="helper-text">ตรวจ Spreadsheet, Schema, Calendar, Google Meet, Cache, Lock และ Web App config ในหน้า Admin</p>
             <pre id="diagnosticsResult">ยังไม่ได้รัน diagnostics</pre>
+          </section>
+
+          <section id="adminMaintenancePanel" class="panel danger-zone" data-admin-only hidden>
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Maintenance</p>
+                <h2>เครื่องมือดูแลข้อมูล</h2>
+              </div>
+              <button type="button" class="danger-button" id="adminClearBookingDataButton" disabled>ล้างข้อมูลจอง</button>
+            </div>
+            <p class="helper-text">ใช้เมื่อต้องการลบข้อมูลทดสอบหลัง QA ระบบจะลบเฉพาะ bookings และ booking_index พร้อมพยายามลบ Calendar event ที่เกี่ยวข้อง ไม่ลบ admin, rooms, settings หรือ schema</p>
           </section>
         </section>
       </section>

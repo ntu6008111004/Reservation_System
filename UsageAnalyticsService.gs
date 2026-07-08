@@ -10,11 +10,13 @@ var UsageAnalyticsService = (function () {
   }
 
   function dashboard() {
-    var bookings = DatabaseService.listObjects('bookings');
+    var allBookings = DatabaseService.listObjects('bookings');
+    var bookings = allBookings.filter(function (item) { return item.status !== 'CANCELLED'; });
     var online = bookings.filter(function (item) { return item.meetingType === 'ONLINE'; }).length;
     var offsite = bookings.filter(function (item) { return item.meetingType === 'OFFSITE'; }).length;
     return {
       totalBookings: bookings.length,
+      cancelledBookings: allBookings.length - bookings.length,
       onlineBookings: online,
       offsiteBookings: offsite,
       onsiteBookings: bookings.length - online - offsite,
