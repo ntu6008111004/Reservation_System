@@ -59,10 +59,10 @@
                   </span>
                 </label>
                 <label>
-                  <input type="radio" name="meetingType" value="HYBRID">
+                  <input type="radio" name="meetingType" value="OFFSITE">
                   <span>
-                    <strong>Hybrid</strong>
-                    <small>จองห้องจริงพร้อมสร้าง Google Meet URL</small>
+                    <strong>นอกสถานที่</strong>
+                    <small>บันทึกการประชุมนอกสถานที่ ไม่สร้าง Google Meet</small>
                   </span>
                 </label>
               </div>
@@ -189,7 +189,7 @@
                 <option value="">ทั้งหมด</option>
                 <option value="ONSITE">ประชุมในห้อง</option>
                 <option value="ONLINE">ออนไลน์</option>
-                <option value="HYBRID">Hybrid</option>
+                <option value="OFFSITE">นอกสถานที่</option>
               </select>
             </div>
             <div class="field">
@@ -210,7 +210,7 @@
             <div><strong id="filteredCount">0</strong><span>รายการที่พบ</span></div>
             <div><strong id="onlineCount">0</strong><span>ออนไลน์</span></div>
             <div><strong id="onsiteCount">0</strong><span>ในห้อง</span></div>
-            <div><strong id="hybridCount">0</strong><span>Hybrid</span></div>
+            <div><strong id="offsiteCount">0</strong><span>นอกสถานที่</span></div>
           </div>
 
           <div id="calendarBoard" class="calendar-board"></div>
@@ -280,8 +280,8 @@
                 <span>Onsite</span>
               </div>
               <div>
-                <strong id="adminHybridBookings">0</strong>
-                <span>Hybrid</span>
+                <strong id="adminOffsiteBookings">0</strong>
+                <span>นอกสถานที่</span>
               </div>
               <div>
                 <strong id="adminActiveRooms">0</strong>

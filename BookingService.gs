@@ -9,7 +9,8 @@ var BookingService = (function () {
       var meetingType = String(input.meetingType).toUpperCase();
       var roomType = String(room.type || '').toUpperCase();
       if (meetingType === 'ONLINE' && roomType !== 'ONLINE') throw new Error('Online meeting must use an online resource');
-      if ((meetingType === 'ONSITE' || meetingType === 'HYBRID') && roomType === 'ONLINE') throw new Error('Onsite/Hybrid meeting must use a physical room');
+      if (meetingType === 'ONSITE' && roomType !== 'ONSITE') throw new Error('Onsite meeting must use a physical room');
+      if (meetingType === 'OFFSITE' && roomType !== 'OFFSITE') throw new Error('Offsite meeting must use an offsite resource');
       var start = new Date(input.startTime);
       var end = new Date(input.endTime);
       ValidationService.validateBookingWindow(start, end);
@@ -18,7 +19,7 @@ var BookingService = (function () {
       var now = Utils.nowIso();
       var id = Utils.uuid();
       var calendarResult = {};
-      if (meetingType === 'ONLINE' || meetingType === 'HYBRID') {
+      if (meetingType === 'ONLINE') {
         calendarResult = CalendarService.createOnlineMeeting({
           id: id,
           title: input.title,

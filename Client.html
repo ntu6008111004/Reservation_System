@@ -34,7 +34,7 @@
   const filteredCount = document.getElementById('filteredCount');
   const onlineCount = document.getElementById('onlineCount');
   const onsiteCount = document.getElementById('onsiteCount');
-  const hybridCount = document.getElementById('hybridCount');
+  const offsiteCount = document.getElementById('offsiteCount');
   const calendarBoard = document.getElementById('calendarBoard');
   const bookingTableBody = document.getElementById('bookingTableBody');
   const calendarRefreshButton = document.getElementById('calendarRefreshButton');
@@ -50,7 +50,7 @@
   const adminTotalBookings = document.getElementById('adminTotalBookings');
   const adminOnlineBookings = document.getElementById('adminOnlineBookings');
   const adminOnsiteBookings = document.getElementById('adminOnsiteBookings');
-  const adminHybridBookings = document.getElementById('adminHybridBookings');
+  const adminOffsiteBookings = document.getElementById('adminOffsiteBookings');
   const adminActiveRooms = document.getElementById('adminActiveRooms');
   const adminRecentBookings = document.getElementById('adminRecentBookings');
 
@@ -240,12 +240,15 @@
     if (meetingType === 'ONLINE') {
       return state.rooms.filter((room) => String(room.type).toUpperCase() === 'ONLINE');
     }
-    return state.rooms.filter((room) => String(room.type).toUpperCase() !== 'ONLINE');
+    if (meetingType === 'OFFSITE') {
+      return state.rooms.filter((room) => String(room.type).toUpperCase() === 'OFFSITE');
+    }
+    return state.rooms.filter((room) => String(room.type).toUpperCase() === 'ONSITE');
   }
 
   function meetingTypeLabel(type) {
     if (type === 'ONLINE') return 'Online';
-    if (type === 'HYBRID') return 'Hybrid';
+    if (type === 'OFFSITE') return 'นอกสถานที่';
     return 'Onsite';
   }
 
@@ -259,8 +262,8 @@
     roomSelect.disabled = rooms.length === 0;
     if (meetingType === 'ONLINE') {
       roomHint.textContent = 'ออนไลน์เท่านั้น: แสดงเฉพาะ resource สำหรับสร้าง Google Meet';
-    } else if (meetingType === 'HYBRID') {
-      roomHint.textContent = 'Hybrid: แสดงเฉพาะห้องจริง และระบบจะสร้าง Google Meet เพิ่มให้';
+    } else if (meetingType === 'OFFSITE') {
+      roomHint.textContent = 'นอกสถานที่: แสดงเฉพาะ resource สำหรับบันทึกการประชุมนอกสถานที่';
     } else {
       roomHint.textContent = 'ประชุมในห้อง: แสดงเฉพาะห้องประชุมจริง';
     }
@@ -322,7 +325,7 @@
     filteredCount.textContent = items.length;
     onlineCount.textContent = items.filter((item) => item.meetingType === 'ONLINE').length;
     onsiteCount.textContent = items.filter((item) => item.meetingType === 'ONSITE').length;
-    hybridCount.textContent = items.filter((item) => item.meetingType === 'HYBRID').length;
+    offsiteCount.textContent = items.filter((item) => item.meetingType === 'OFFSITE').length;
 
     if (!items.length) {
       calendarBoard.innerHTML = '<div class="empty">ไม่พบรายการจองตามเงื่อนไข</div>';
@@ -394,7 +397,7 @@
       adminTotalBookings.textContent = dashboard.totalBookings || 0;
       adminOnlineBookings.textContent = dashboard.onlineBookings || 0;
       adminOnsiteBookings.textContent = dashboard.onsiteBookings || 0;
-      adminHybridBookings.textContent = dashboard.hybridBookings || 0;
+      adminOffsiteBookings.textContent = dashboard.offsiteBookings || 0;
       adminActiveRooms.textContent = dashboard.activeRooms || 0;
       adminRecentBookings.innerHTML = dashboard.recentBookings && dashboard.recentBookings.length
         ? dashboard.recentBookings.map(bookingCardHtml).join('')
@@ -437,7 +440,7 @@
     submitButton.disabled = true;
     submitButton.textContent = 'กำลังบันทึก...';
     setStatus('กำลังบันทึกการจอง...', '');
-    showLoading(data.meetingType === 'ONLINE' || data.meetingType === 'HYBRID' ? 'กำลังจองและสร้าง Google Meet...' : 'กำลังบันทึกการจอง...');
+    showLoading(data.meetingType === 'ONLINE' ? 'กำลังจองและสร้าง Google Meet...' : 'กำลังบันทึกการจอง...');
 
     try {
       const booking = await callApi('createBooking', data);
