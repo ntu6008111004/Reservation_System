@@ -3,7 +3,9 @@
     rooms: [],
     bookings: [],
     adminSessionToken: '',
-    currentTab: 'booking'
+    currentTab: 'booking',
+    activeDateInput: null,
+    datePickerMonth: new Date()
   };
 
   const statusEl = document.getElementById('status');
@@ -26,6 +28,14 @@
   const resultMessage = document.getElementById('resultMessage');
   const resultActions = document.getElementById('resultActions');
   const resultCloseButton = document.getElementById('resultCloseButton');
+  const datePickerModal = document.getElementById('datePickerModal');
+  const datePickerTitle = document.getElementById('datePickerTitle');
+  const datePickerGrid = document.getElementById('datePickerGrid');
+  const datePickerPrev = document.getElementById('datePickerPrev');
+  const datePickerNext = document.getElementById('datePickerNext');
+  const datePickerClear = document.getElementById('datePickerClear');
+  const datePickerToday = document.getElementById('datePickerToday');
+  const datePickerClose = document.getElementById('datePickerClose');
 
   const filterRoom = document.getElementById('filterRoom');
   const filterType = document.getElementById('filterType');
@@ -189,15 +199,71 @@
     document.querySelectorAll('.native-date-input').forEach(syncDateDisplay);
   }
 
+  function valueToDate(dateValue) {
+    const dateMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(dateValue || '').trim());
+    if (!dateMatch) return null;
+    return new Date(Number(dateMatch[1]), Number(dateMatch[2]) - 1, Number(dateMatch[3]), 12, 0, 0, 0);
+  }
+
+  function sameDate(first, second) {
+    return first && second &&
+      first.getFullYear() === second.getFullYear() &&
+      first.getMonth() === second.getMonth() &&
+      first.getDate() === second.getDate();
+  }
+
+  function closeDatePicker() {
+    datePickerModal.hidden = true;
+    state.activeDateInput = null;
+  }
+
+  function setDatePickerValue(date) {
+    if (!state.activeDateInput) return;
+    state.activeDateInput.value = formatDateInput(date);
+    syncDateDisplay(state.activeDateInput);
+    state.activeDateInput.dispatchEvent(new Event('change', { bubbles: true }));
+    closeDatePicker();
+  }
+
+  function renderDatePicker() {
+    const monthDate = state.datePickerMonth;
+    const year = monthDate.getFullYear();
+    const month = monthDate.getMonth();
+    const selectedDate = state.activeDateInput ? valueToDate(state.activeDateInput.value) : null;
+    const today = new Date();
+    const monthNames = [
+      'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+      'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
+    ];
+    const firstDay = new Date(year, month, 1);
+    const firstGridOffset = (firstDay.getDay() + 6) % 7;
+    const gridStart = new Date(year, month, 1 - firstGridOffset);
+    const days = [];
+
+    datePickerTitle.textContent = `${monthNames[month]} ${year}`;
+    for (let index = 0; index < 42; index += 1) {
+      const date = new Date(gridStart);
+      date.setDate(gridStart.getDate() + index);
+      const isOutside = date.getMonth() !== month;
+      const classes = [
+        'date-picker-day',
+        isOutside ? 'outside' : '',
+        sameDate(date, today) ? 'today' : '',
+        sameDate(date, selectedDate) ? 'selected' : ''
+      ].filter(Boolean).join(' ');
+      days.push(`<button type="button" class="${classes}" data-date="${formatDateInput(date)}">${date.getDate()}</button>`);
+    }
+    datePickerGrid.innerHTML = days.join('');
+  }
+
   function openDatePicker(inputId) {
     const input = document.getElementById(inputId);
     if (!input) return;
-    if (typeof input.showPicker === 'function') {
-      input.showPicker();
-    } else {
-      input.focus();
-      input.click();
-    }
+    const selectedDate = valueToDate(input.value) || new Date();
+    state.activeDateInput = input;
+    state.datePickerMonth = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
+    renderDatePicker();
+    datePickerModal.hidden = false;
   }
 
   function parseDateOnly(dateText, label, endOfDay) {
@@ -717,6 +783,41 @@
   resultCloseButton.addEventListener('click', hideResult);
   resultModal.addEventListener('click', (event) => {
     if (event.target === resultModal) hideResult();
+  });
+
+  datePickerPrev.addEventListener('click', () => {
+    state.datePickerMonth = new Date(state.datePickerMonth.getFullYear(), state.datePickerMonth.getMonth() - 1, 1);
+    renderDatePicker();
+  });
+
+  datePickerNext.addEventListener('click', () => {
+    state.datePickerMonth = new Date(state.datePickerMonth.getFullYear(), state.datePickerMonth.getMonth() + 1, 1);
+    renderDatePicker();
+  });
+
+  datePickerToday.addEventListener('click', () => {
+    setDatePickerValue(new Date());
+  });
+
+  datePickerClear.addEventListener('click', () => {
+    if (!state.activeDateInput) return;
+    state.activeDateInput.value = '';
+    syncDateDisplay(state.activeDateInput);
+    state.activeDateInput.dispatchEvent(new Event('change', { bubbles: true }));
+    closeDatePicker();
+  });
+
+  datePickerClose.addEventListener('click', closeDatePicker);
+
+  datePickerGrid.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-date]');
+    if (!button) return;
+    const date = valueToDate(button.dataset.date);
+    if (date) setDatePickerValue(date);
+  });
+
+  datePickerModal.addEventListener('click', (event) => {
+    if (event.target === datePickerModal) closeDatePicker();
   });
 
   adminRecentBookings.innerHTML = '<div class="empty">เข้าสู่ระบบเพื่อดู Dashboard</div>';

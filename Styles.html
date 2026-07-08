@@ -826,6 +826,73 @@
     background: #155eef;
   }
 
+  .date-picker-modal {
+    width: min(420px, 100%);
+  }
+
+  .date-picker-head {
+    display: grid;
+    grid-template-columns: 44px 1fr 44px;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+
+  .date-picker-head h2 {
+    text-align: center;
+    font-size: 22px;
+  }
+
+  .date-picker-weekdays,
+  .date-picker-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .date-picker-weekdays {
+    margin-bottom: 8px;
+    color: #667085;
+    font-size: 13px;
+    font-weight: 900;
+    text-align: center;
+  }
+
+  .date-picker-day {
+    min-height: 42px;
+    padding: 0;
+    color: #172033;
+    background: #f8fbff;
+    border: 1px solid #dbe5f4;
+    box-shadow: none;
+  }
+
+  .date-picker-day:hover {
+    color: #ffffff;
+    background: #155eef;
+    box-shadow: 0 10px 24px rgba(21, 94, 239, 0.18);
+  }
+
+  .date-picker-day.outside {
+    color: #98a2b3;
+    background: #f8fafc;
+  }
+
+  .date-picker-day.today {
+    border-color: #155eef;
+    color: #155eef;
+  }
+
+  .date-picker-day.selected {
+    color: #ffffff;
+    background: #155eef;
+    border-color: #155eef;
+  }
+
+  .date-picker-actions {
+    justify-content: space-between;
+  }
+
   @keyframes spin {
     to {
       transform: rotate(360deg);

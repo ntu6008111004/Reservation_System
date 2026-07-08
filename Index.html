@@ -399,6 +399,25 @@
       </div>
     </div>
 
+    <div id="datePickerModal" class="modal-backdrop" hidden>
+      <div class="modal date-picker-modal" role="dialog" aria-modal="true" aria-labelledby="datePickerTitle">
+        <div class="date-picker-head">
+          <button type="button" class="icon-button secondary" id="datePickerPrev" aria-label="เดือนก่อน">‹</button>
+          <h2 id="datePickerTitle">เลือกวันที่</h2>
+          <button type="button" class="icon-button secondary" id="datePickerNext" aria-label="เดือนถัดไป">›</button>
+        </div>
+        <div class="date-picker-weekdays" aria-hidden="true">
+          <span>จ</span><span>อ</span><span>พ</span><span>พฤ</span><span>ศ</span><span>ส</span><span>อา</span>
+        </div>
+        <div id="datePickerGrid" class="date-picker-grid"></div>
+        <div class="modal-actions date-picker-actions">
+          <button type="button" class="secondary" id="datePickerClear">ล้างวันที่</button>
+          <button type="button" id="datePickerToday">วันนี้</button>
+          <button type="button" class="secondary" id="datePickerClose">ปิด</button>
+        </div>
+      </div>
+    </div>
+
     <div id="toast" class="toast" hidden></div>
     <?!= include('Client'); ?>
   </body>
