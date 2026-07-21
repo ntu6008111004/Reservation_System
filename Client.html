@@ -963,10 +963,17 @@
         const result = await callApi('adminConfigureMeetAccess', { sessionToken: state.adminSessionToken, bookingId: meetButton.dataset.bookingId });
         await loadAdminBookings();
         await loadAdminAuditLogs();
+        const meetConfig = result.config || {};
+        const meetDiagnostic = meetConfig.diagnostics || {};
+        const patchDiagnostic = meetDiagnostic.patch || {};
+        const verifiedDiagnostic = meetDiagnostic.verified || {};
+        const diagnosticMessage = meetConfig.status === 'CONFIGURED'
+          ? 'ผู้ที่มีลิงก์จะเข้าได้ทันที และ Google Meet พร้อมเริ่มบันทึกเมื่อ Host/Co-host เข้าห้อง'
+          : `Google ไม่ยืนยันค่าที่ร้องขอ\nผล PATCH: Open=${patchDiagnostic.accessType || '-'}, Auto-record=${patchDiagnostic.autoRecording || '-'}\nผลตรวจซ้ำ: Open=${verifiedDiagnostic.accessType || '-'}, Auto-record=${verifiedDiagnostic.autoRecording || '-'}\nกรุณาส่งข้อความนี้ให้ผู้ดูแลตรวจสิทธิ์ Google Meet API และแพ็กเกจบัญชีอีกครั้ง`;
         showResult({
           eyebrow: 'Google Meet Access',
-          title: result.config && result.config.status === 'CONFIGURED' ? 'ตั้งค่า Meet สำเร็จ' : 'Google Meet รับการตั้งค่าไม่ครบ',
-          message: `Open access: ${result.config && result.config.accessType || 'ไม่ได้รับค่า'}\nAuto-record: ${result.config && result.config.autoRecording || 'ไม่ได้รับค่า'}\n${result.config && result.config.status === 'CONFIGURED' ? 'ผู้ที่มีลิงก์จะเข้าได้ทันที และ Google Meet พร้อมเริ่มบันทึกเมื่อ Host/Co-host เข้าห้อง' : 'กรุณาส่งข้อความนี้ให้ผู้ดูแลตรวจสิทธิ์ Google Meet API และแพ็กเกจบัญชีอีกครั้ง'}`
+          title: meetConfig.status === 'CONFIGURED' ? 'ตั้งค่า Meet สำเร็จ' : 'Google Meet รับการตั้งค่าไม่ครบ',
+          message: `Open access: ${meetConfig.accessType || 'ไม่ได้รับค่า'}\nAuto-record: ${meetConfig.autoRecording || 'ไม่ได้รับค่า'}\n${diagnosticMessage}`
         });
       } catch (error) {
         showResult({ eyebrow: 'Google Meet Access', title: 'ตั้งค่า Open ไม่สำเร็จ', message: error.message });
