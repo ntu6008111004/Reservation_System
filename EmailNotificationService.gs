@@ -1,6 +1,6 @@
 var EmailNotificationService = (function () {
   function enabled() {
-    return String(SettingsService.get('email_notifications_enabled', 'false')).toLowerCase() === 'true';
+    return SettingsService.getBoolean('email_notifications_enabled', false);
   }
 
   function shouldSend(booking) {

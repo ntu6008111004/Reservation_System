@@ -73,8 +73,9 @@ if (!setupService.includes("calendar_invite_requester_enabled', 'false'")) fail(
 if (!setupService.includes("Utils.safeRun('emailNotifications'")) fail('Diagnostics must include email notification status');
 if (!bookingService.includes('EmailNotificationService.bookingCreated')) fail('Booking creation should be wired to dormant email notifications');
 if (!bookingService.includes('EmailNotificationService.bookingCancelled')) fail('Booking cancellation should be wired to dormant email notifications');
-if (!emailService.includes("SettingsService.get('email_notifications_enabled', 'false')")) fail('Email notification service must respect disabled setting');
-if (!read('CalendarService.gs').includes("SettingsService.get('calendar_invite_requester_enabled', 'false')")) fail('Calendar requester invite must respect disabled setting');
+if (!read('SettingsService.gs').includes('function getBoolean(key, fallback)')) fail('Settings must normalize boolean values returned by Google Sheets');
+if (!emailService.includes("SettingsService.getBoolean('email_notifications_enabled', false)")) fail('Email notification service must respect disabled setting');
+if (!read('CalendarService.gs').includes("SettingsService.getBoolean('calendar_invite_requester_enabled', false)")) fail('Calendar requester invite must respect disabled setting');
 if (!read('MeetSpaceService.gs').includes("accessType = 'OPEN'")) fail('Meet policy must support open-link access');
 if (!read('MeetSpaceService.gs').includes("autoRecordingGeneration: 'ON'")) fail('Meet policy must support automatic recording');
 if (!read('MeetSpaceService.gs').includes('getSpaceWhenReady')) fail('Meet space configuration must retry after Calendar creation');

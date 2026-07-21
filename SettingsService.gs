@@ -4,6 +4,18 @@ var SettingsService = (function () {
     return row ? row.value : fallback;
   }
 
+  function toBoolean(value, fallback) {
+    if (value === true || value === false) return value;
+    var normalized = String(value === undefined || value === null ? '' : value).trim().toLowerCase();
+    if (normalized === 'true' || normalized === '1' || normalized === 'yes' || normalized === 'on') return true;
+    if (normalized === 'false' || normalized === '0' || normalized === 'no' || normalized === 'off') return false;
+    return !!fallback;
+  }
+
+  function getBoolean(key, fallback) {
+    return toBoolean(get(key, fallback), fallback);
+  }
+
   function setDefault(key, value, description) {
     if (!DatabaseService.findByKey('settings', 'key', key)) {
       DatabaseService.appendObject('settings', {
@@ -27,10 +39,10 @@ var SettingsService = (function () {
 
   function adminFeatureSettings() {
     return {
-      emailNotificationsEnabled: get('email_notifications_enabled', 'false') === 'true',
-      calendarInviteRequesterEnabled: get('calendar_invite_requester_enabled', 'false') === 'true',
-      meetOpenAccessEnabled: get('meet_open_access_enabled', 'true') === 'true',
-      meetAutoRecordingEnabled: get('meet_auto_recording_enabled', 'true') === 'true'
+      emailNotificationsEnabled: getBoolean('email_notifications_enabled', false),
+      calendarInviteRequesterEnabled: getBoolean('calendar_invite_requester_enabled', false),
+      meetOpenAccessEnabled: getBoolean('meet_open_access_enabled', true),
+      meetAutoRecordingEnabled: getBoolean('meet_auto_recording_enabled', true)
     };
   }
 
@@ -44,6 +56,8 @@ var SettingsService = (function () {
 
   return {
     get: get,
+    getBoolean: getBoolean,
+    toBoolean: toBoolean,
     set: set,
     setDefault: setDefault,
     adminFeatureSettings: adminFeatureSettings,

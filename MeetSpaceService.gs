@@ -65,8 +65,8 @@ var MeetSpaceService = (function () {
   }
 
   function configureForBooking(meetUrl) {
-    var enableOpenAccess = SettingsService.get('meet_open_access_enabled', 'true') === 'true';
-    var enableAutoRecording = SettingsService.get('meet_auto_recording_enabled', 'true') === 'true';
+    var enableOpenAccess = SettingsService.getBoolean('meet_open_access_enabled', true);
+    var enableAutoRecording = SettingsService.getBoolean('meet_auto_recording_enabled', true);
     if (!enableOpenAccess && !enableAutoRecording) return { status: 'DISABLED' };
     var meetingCode = meetingCodeFromUrl(meetUrl);
     if (!meetingCode) throw new Error('Cannot find the Google Meet code from the meeting URL.');
