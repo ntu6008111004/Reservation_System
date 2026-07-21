@@ -632,9 +632,19 @@
     }
     adminBookingTableBody.innerHTML = items.map((item) => {
       const disabled = item.status === 'CANCELLED' ? 'disabled' : '';
-      const meetAction = item.meetingType === 'ONLINE' && item.meetUrl
-        ? `<button type="button" class="admin-configure-meet" data-booking-id="${escapeHtml(item.id)}" ${disabled}>เปิดสิทธิ์ Meet</button>`
-        : '';
+      const meetStatus = String(item.meetConfigStatus || '').toUpperCase();
+      const meetConfigured = meetStatus === 'CONFIGURED';
+      const meetFeatureDisabled = meetStatus === 'DISABLED';
+      let meetAction = '';
+      if (item.meetingType === 'ONLINE' && item.meetUrl) {
+        if (meetConfigured) {
+          meetAction = '<span class="badge">Meet พร้อม</span>';
+        } else if (meetFeatureDisabled) {
+          meetAction = '<span class="badge muted">ฟีเจอร์ Meet ปิดอยู่</span>';
+        } else {
+          meetAction = `<button type="button" class="admin-configure-meet" data-booking-id="${escapeHtml(item.id)}" ${disabled}>ลองตั้งค่า Meet อีกครั้ง</button>`;
+        }
+      }
       return `
         <tr>
           <td>${formatDateTime(item.startTime)}<br><span class="muted">${formatDateTime(item.endTime)}</span></td>
