@@ -20,6 +20,21 @@ var MeetSpaceService = (function () {
     return body ? JSON.parse(body) : {};
   }
 
+  function getSpaceWhenReady(meetingCode) {
+    var lastError;
+    for (var attempt = 0; attempt < 6; attempt++) {
+      try {
+        return request(BASE_URL + 'spaces/' + encodeURIComponent(meetingCode), 'get');
+      } catch (error) {
+        lastError = error;
+        // Calendar can return the Meet URL before the Meet API exposes its space.
+        if (!/Google Meet API (404|409|429|500|503)/.test(error.message) || attempt === 5) throw error;
+        Utilities.sleep(700 * (attempt + 1));
+      }
+    }
+    throw lastError;
+  }
+
   function configureForBooking(meetUrl) {
     var enableOpenAccess = SettingsService.get('meet_open_access_enabled', 'true') === 'true';
     var enableAutoRecording = SettingsService.get('meet_auto_recording_enabled', 'true') === 'true';
@@ -27,7 +42,7 @@ var MeetSpaceService = (function () {
     var meetingCode = meetingCodeFromUrl(meetUrl);
     if (!meetingCode) throw new Error('Cannot find the Google Meet code from the meeting URL.');
 
-    var space = request(BASE_URL + 'spaces/' + encodeURIComponent(meetingCode), 'get');
+    var space = getSpaceWhenReady(meetingCode);
     var config = {};
     var updateMask = [];
     if (enableOpenAccess) {
@@ -54,6 +69,7 @@ var MeetSpaceService = (function () {
   return {
     meetingCodeFromUrl: meetingCodeFromUrl,
     request: request,
+    getSpaceWhenReady: getSpaceWhenReady,
     configureForBooking: configureForBooking
   };
 })();

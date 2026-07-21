@@ -629,6 +629,9 @@
     }
     adminBookingTableBody.innerHTML = items.map((item) => {
       const disabled = item.status === 'CANCELLED' ? 'disabled' : '';
+      const meetAction = item.meetingType === 'ONLINE' && item.meetUrl
+        ? `<button type="button" class="admin-configure-meet" data-booking-id="${escapeHtml(item.id)}" ${disabled}>เปิดสิทธิ์ Meet</button>`
+        : '';
       return `
         <tr>
           <td>${formatDateTime(item.startTime)}<br><span class="muted">${formatDateTime(item.endTime)}</span></td>
@@ -636,7 +639,7 @@
           <td>${escapeHtml(item.roomName)}<br><span class="muted">${meetingTypeLabel(item.meetingType)}</span></td>
           <td>${escapeHtml(item.requesterName || item.requesterEmail || '-')}</td>
           <td><span class="badge ${item.status === 'CANCELLED' ? 'danger' : ''}">${statusLabel(item.status)}</span></td>
-          <td><button type="button" class="danger-button admin-cancel-booking" data-booking-id="${escapeHtml(item.id)}" ${disabled}>ยกเลิก</button></td>
+          <td><div class="table-actions">${meetAction}<button type="button" class="danger-button admin-cancel-booking" data-booking-id="${escapeHtml(item.id)}" ${disabled}>ยกเลิก</button></div></td>
         </tr>
       `;
     }).join('');
@@ -952,6 +955,26 @@
   });
 
   adminBookingTableBody.addEventListener('click', async (event) => {
+    const meetButton = event.target.closest('.admin-configure-meet');
+    if (meetButton && state.adminSessionToken) {
+      meetButton.disabled = true;
+      showLoading('กำลังตั้งค่า Google Meet ให้เข้าได้ทันที...');
+      try {
+        const result = await callApi('adminConfigureMeetAccess', { sessionToken: state.adminSessionToken, bookingId: meetButton.dataset.bookingId });
+        await loadAdminBookings();
+        await loadAdminAuditLogs();
+        showResult({
+          eyebrow: 'Google Meet Access',
+          title: result.config && result.config.accessType === 'OPEN' ? 'ตั้งค่า Open สำเร็จ' : 'ตั้งค่า Google Meet สำเร็จ',
+          message: 'ผู้ที่มีลิงก์จะเข้า Meet ได้ทันทีตามนโยบายที่ตั้งไว้'
+        });
+      } catch (error) {
+        showResult({ eyebrow: 'Google Meet Access', title: 'ตั้งค่า Open ไม่สำเร็จ', message: error.message });
+      } finally {
+        hideLoading();
+      }
+      return;
+    }
     const button = event.target.closest('.admin-cancel-booking');
     if (!button || !state.adminSessionToken) return;
     if (!window.confirm('ยืนยันยกเลิกรายการจองนี้?')) return;

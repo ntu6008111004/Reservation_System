@@ -111,9 +111,25 @@ var BookingService = (function () {
     return booking;
   }
 
+  function configureMeetAccess(id, actor) {
+    var booking = DatabaseService.findByKey('bookings', 'id', id);
+    if (!booking) throw new Error('Booking not found');
+    if (booking.status === 'CANCELLED') throw new Error('Cancelled bookings cannot be reconfigured');
+    if (booking.meetingType !== 'ONLINE' || !booking.meetUrl) throw new Error('This booking does not have a Google Meet room');
+    var config = MeetSpaceService.configureForBooking(booking.meetUrl);
+    booking.meetCode = MeetSpaceService.meetingCodeFromUrl(booking.meetUrl);
+    booking.meetSpaceName = config.spaceName || booking.meetSpaceName || '';
+    booking.meetConfigStatus = config.status || 'CONFIGURED';
+    booking.updatedAt = Utils.nowIso();
+    DatabaseService.upsertByKey('bookings', 'id', id, booking);
+    AuditLogService.log(actor || 'ADMIN', 'MEET_ACCESS_CONFIGURED', 'booking', id, config);
+    return { booking: booking, config: config };
+  }
+
   return {
     createBooking: createBooking,
     listBookings: listBookings,
-    cancelBooking: cancelBooking
+    cancelBooking: cancelBooking,
+    configureMeetAccess: configureMeetAccess
   };
 })();

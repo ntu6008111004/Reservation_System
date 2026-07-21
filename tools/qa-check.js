@@ -75,6 +75,7 @@ if (!emailService.includes("SettingsService.get('email_notifications_enabled', '
 if (!read('CalendarService.gs').includes("SettingsService.get('calendar_invite_requester_enabled', 'false')")) fail('Calendar requester invite must respect disabled setting');
 if (!read('MeetSpaceService.gs').includes("accessType = 'OPEN'")) fail('Meet policy must support open-link access');
 if (!read('MeetSpaceService.gs').includes("autoRecordingGeneration: 'ON'")) fail('Meet policy must support automatic recording');
+if (!read('MeetSpaceService.gs').includes('getSpaceWhenReady')) fail('Meet space configuration must retry after Calendar creation');
 if (!read('MeetRecordingService.gs').includes("function syncMeetRecordings()")) fail('Meet recording sync trigger is missing');
 
 console.log(`QA checks passed (${gasFiles.length} Apps Script files, client JS, Thai encoding, required UI ids, responsive guards).`);

@@ -52,6 +52,9 @@ function routeApi(action, data) {
         var syncResult = MeetRecordingService.syncPendingRecordings();
         AuditLogService.log(recordingSession.username, 'MEET_RECORDINGS_SYNCED', 'recording', 'pending', syncResult);
         return ResponseService.success(syncResult);
+      case 'adminConfigureMeetAccess':
+        var meetSession = AdminAuthService.requireSession(data.sessionToken);
+        return ResponseService.success(BookingService.configureMeetAccess(data.bookingId, meetSession.username));
       case 'adminClearBookingData':
         var clearSession = AdminAuthService.requireSession(data.sessionToken);
         return ResponseService.success(clearBookingDataForTesting(clearSession.username));
