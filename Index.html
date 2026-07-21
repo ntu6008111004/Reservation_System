@@ -440,6 +440,23 @@
                   <small>เจ้าของระบบยังเป็นผู้สร้าง Meet หลัก แต่ถ้าเปิดฟีเจอร์นี้ ระบบจะเชิญอีเมลที่ผู้จองกรอกเป็นผู้ร่วมประชุม</small>
                 </span>
               </label>
+              <label class="feature-toggle">
+                <input id="meetOpenAccessToggle" type="checkbox">
+                <span>
+                  <strong>ผู้ที่มีลิงก์ Google Meet เข้าประชุมได้ทันที</strong>
+                  <small>ตั้งค่า Meet เป็น Open ต่อรายการจอง ผู้ใช้ที่มีลิงก์จะไม่ต้องรอผู้จัดกดอนุญาต</small>
+                </span>
+              </label>
+              <label class="feature-toggle">
+                <input id="meetAutoRecordingToggle" type="checkbox">
+                <span>
+                  <strong>บันทึกการประชุมออนไลน์อัตโนมัติ</strong>
+                  <small>Google Meet จะเริ่มบันทึกเมื่อบัญชีที่มีสิทธิ์บันทึกเข้าร่วม และระบบจะจัดชื่อ/โฟลเดอร์ไฟล์ใน Drive หลังไฟล์พร้อม</small>
+                </span>
+              </label>
+            </div>
+            <div class="panel-actions">
+              <button type="button" id="adminSyncMeetRecordingsButton" disabled>ตรวจและจัดไฟล์บันทึก Meet</button>
             </div>
           </section>
 

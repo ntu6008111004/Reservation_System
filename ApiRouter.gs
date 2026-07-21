@@ -43,8 +43,15 @@ function routeApi(action, data) {
         var featureSession = AdminAuthService.requireSession(data.sessionToken);
         SettingsService.set('email_notifications_enabled', data.emailNotificationsEnabled ? 'true' : 'false', 'Keep email notifications disabled until users are ready.');
         SettingsService.set('calendar_invite_requester_enabled', data.calendarInviteRequesterEnabled ? 'true' : 'false', 'Invite requester email to Calendar/Meet only when admins enable it.');
+        SettingsService.set('meet_open_access_enabled', data.meetOpenAccessEnabled ? 'true' : 'false', 'Online meetings allow anyone with the Meet link to join without knocking.');
+        SettingsService.set('meet_auto_recording_enabled', data.meetAutoRecordingEnabled ? 'true' : 'false', 'Automatically record an online meeting when Google Workspace permits recording.');
         AuditLogService.log(featureSession.username, 'FEATURE_SETTINGS_UPDATED', 'settings', 'admin_features', SettingsService.adminFeatureSettings());
         return ResponseService.success(SettingsService.adminFeatureSettings());
+      case 'adminSyncMeetRecordings':
+        var recordingSession = AdminAuthService.requireSession(data.sessionToken);
+        var syncResult = MeetRecordingService.syncPendingRecordings();
+        AuditLogService.log(recordingSession.username, 'MEET_RECORDINGS_SYNCED', 'recording', 'pending', syncResult);
+        return ResponseService.success(syncResult);
       case 'adminClearBookingData':
         var clearSession = AdminAuthService.requireSession(data.sessionToken);
         return ResponseService.success(clearBookingDataForTesting(clearSession.username));

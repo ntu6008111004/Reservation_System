@@ -81,6 +81,9 @@
   const adminFeatureSettingsSaveButton = document.getElementById('adminFeatureSettingsSaveButton');
   const emailNotificationsToggle = document.getElementById('emailNotificationsToggle');
   const calendarInviteRequesterToggle = document.getElementById('calendarInviteRequesterToggle');
+  const meetOpenAccessToggle = document.getElementById('meetOpenAccessToggle');
+  const meetAutoRecordingToggle = document.getElementById('meetAutoRecordingToggle');
+  const adminSyncMeetRecordingsButton = document.getElementById('adminSyncMeetRecordingsButton');
   const adminClearBookingDataButton = document.getElementById('adminClearBookingDataButton');
   const adminTotalBookings = document.getElementById('adminTotalBookings');
   const adminOnlineBookings = document.getElementById('adminOnlineBookings');
@@ -574,6 +577,7 @@
     adminRoomsButton.disabled = !session;
     adminAuditButton.disabled = !session;
     adminFeatureSettingsSaveButton.disabled = !session;
+    adminSyncMeetRecordingsButton.disabled = !session;
     adminClearBookingDataButton.disabled = !session;
     adminLogoutButton.disabled = !session;
     adminLoginButton.disabled = !!session;
@@ -717,6 +721,8 @@
   function renderFeatureSettings(settings) {
     emailNotificationsToggle.checked = !!settings.emailNotificationsEnabled;
     calendarInviteRequesterToggle.checked = !!settings.calendarInviteRequesterEnabled;
+    meetOpenAccessToggle.checked = !!settings.meetOpenAccessEnabled;
+    meetAutoRecordingToggle.checked = !!settings.meetAutoRecordingEnabled;
   }
 
   async function loadAdminFeatureSettings() {
@@ -886,7 +892,9 @@
       const settings = await callApi('adminUpdateFeatureSettings', {
         sessionToken: state.adminSessionToken,
         emailNotificationsEnabled: emailNotificationsToggle.checked,
-        calendarInviteRequesterEnabled: calendarInviteRequesterToggle.checked
+        calendarInviteRequesterEnabled: calendarInviteRequesterToggle.checked,
+        meetOpenAccessEnabled: meetOpenAccessToggle.checked,
+        meetAutoRecordingEnabled: meetAutoRecordingToggle.checked
       });
       renderFeatureSettings(settings || {});
       await loadAdminAuditLogs();
@@ -896,6 +904,26 @@
     } finally {
       hideLoading();
       adminFeatureSettingsSaveButton.disabled = !state.adminSessionToken;
+    }
+  });
+  adminSyncMeetRecordingsButton.addEventListener('click', async () => {
+    if (!state.adminSessionToken) return;
+    adminSyncMeetRecordingsButton.disabled = true;
+    showLoading('กำลังตรวจไฟล์บันทึก Google Meet...');
+    try {
+      const result = await callApi('adminSyncMeetRecordings', { sessionToken: state.adminSessionToken });
+      const synced = (result.results || []).filter((item) => item.ok && item.result && item.result.synced).length;
+      showResult({
+        eyebrow: 'Google Meet Recording',
+        title: synced ? 'จัดไฟล์บันทึกเรียบร้อย' : 'ยังไม่พบไฟล์บันทึกใหม่',
+        message: `ตรวจ ${result.checked || 0} รายการ และจัดไฟล์สำเร็จ ${synced} รายการ${result.folderUrl ? `\nโฟลเดอร์: ${result.folderUrl}` : ''}`
+      });
+      await loadAdminAuditLogs();
+    } catch (error) {
+      showResult({ eyebrow: 'Google Meet Recording', title: 'ตรวจไฟล์บันทึกไม่สำเร็จ', message: error.message });
+    } finally {
+      hideLoading();
+      adminSyncMeetRecordingsButton.disabled = !state.adminSessionToken;
     }
   });
   adminClearBookingDataButton.addEventListener('click', async () => {

@@ -31,7 +31,16 @@ var CalendarService = (function () {
     var event = Calendar.Events.insert(resource, calendarId(), { conferenceDataVersion: 1, sendUpdates: 'all' });
     var meetUrl = event.hangoutLink || extractMeetUrl(event);
     if (!meetUrl) throw new Error('Calendar event created but Google Meet URL was not returned. Check Calendar API and Meet permissions.');
-    return { eventId: event.id, meetUrl: meetUrl };
+    var meetConfig = Utils.safeRun('configureMeetSpace', function () {
+      return MeetSpaceService.configureForBooking(meetUrl);
+    });
+    return {
+      eventId: event.id,
+      meetUrl: meetUrl,
+      meetCode: MeetSpaceService.meetingCodeFromUrl(meetUrl),
+      meetSpaceName: meetConfig.ok && meetConfig.result.spaceName ? meetConfig.result.spaceName : '',
+      meetConfigStatus: meetConfig.ok ? meetConfig.result.status : 'PENDING_SETUP: ' + meetConfig.error
+    };
   }
 
   function extractMeetUrl(event) {

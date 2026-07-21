@@ -28,7 +28,9 @@ var SettingsService = (function () {
   function adminFeatureSettings() {
     return {
       emailNotificationsEnabled: get('email_notifications_enabled', 'false') === 'true',
-      calendarInviteRequesterEnabled: get('calendar_invite_requester_enabled', 'false') === 'true'
+      calendarInviteRequesterEnabled: get('calendar_invite_requester_enabled', 'false') === 'true',
+      meetOpenAccessEnabled: get('meet_open_access_enabled', 'true') === 'true',
+      meetAutoRecordingEnabled: get('meet_auto_recording_enabled', 'true') === 'true'
     };
   }
 

@@ -38,6 +38,9 @@ const requiredIds = [
   'adminFeatureSettingsSaveButton',
   'emailNotificationsToggle',
   'calendarInviteRequesterToggle',
+  'meetOpenAccessToggle',
+  'meetAutoRecordingToggle',
+  'adminSyncMeetRecordingsButton',
   'adminClearBookingDataButton',
   'diagnosticsButton'
 ];
@@ -70,5 +73,8 @@ if (!bookingService.includes('EmailNotificationService.bookingCreated')) fail('B
 if (!bookingService.includes('EmailNotificationService.bookingCancelled')) fail('Booking cancellation should be wired to dormant email notifications');
 if (!emailService.includes("SettingsService.get('email_notifications_enabled', 'false')")) fail('Email notification service must respect disabled setting');
 if (!read('CalendarService.gs').includes("SettingsService.get('calendar_invite_requester_enabled', 'false')")) fail('Calendar requester invite must respect disabled setting');
+if (!read('MeetSpaceService.gs').includes("accessType = 'OPEN'")) fail('Meet policy must support open-link access');
+if (!read('MeetSpaceService.gs').includes("autoRecordingGeneration: 'ON'")) fail('Meet policy must support automatic recording');
+if (!read('MeetRecordingService.gs').includes("function syncMeetRecordings()")) fail('Meet recording sync trigger is missing');
 
 console.log(`QA checks passed (${gasFiles.length} Apps Script files, client JS, Thai encoding, required UI ids, responsive guards).`);

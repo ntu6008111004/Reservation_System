@@ -43,6 +43,7 @@ function setupDatabase() {
   });
   seedSettings();
   seedRooms();
+  Utils.safeRun('recordingSyncTrigger', function () { return MeetRecordingService.ensureSyncTrigger(); });
   DatabaseService.upsertByKey('system_meta', 'key', 'schema_version', {
     key: 'schema_version',
     value: '1',
@@ -58,6 +59,9 @@ function seedSettings() {
   SettingsService.setDefault('web_app_access', 'Anyone with the link', 'Recommended lightweight access mode.');
   SettingsService.setDefault('email_notifications_enabled', 'false', 'Keep email notifications disabled until users are ready.');
   SettingsService.setDefault('calendar_invite_requester_enabled', 'false', 'Invite requester email to Calendar/Meet only when admins enable it.');
+  SettingsService.setDefault('meet_open_access_enabled', 'true', 'Online meetings allow anyone with the Meet link to join without knocking.');
+  SettingsService.setDefault('meet_auto_recording_enabled', 'true', 'Automatically record an online meeting when Google Workspace permits recording.');
+  SettingsService.setDefault('meet_recordings_folder_id', '', 'Drive folder ID used for renamed Google Meet recordings.');
 }
 
 function seedRooms() {
@@ -136,6 +140,7 @@ function runSystemDiagnostics() {
     Utils.safeRun('sheetCapacity', function () { return DatabaseService.sheetCapacityReport(); }),
     Utils.safeRun('calendarAccess', function () { return CalendarService.testAccess(); }),
     Utils.safeRun('calendarMeetCreation', function () { return CalendarService.testMeetCreation(); }),
+    Utils.safeRun('meetRecordingSync', function () { return MeetRecordingService.status(); }),
     Utils.safeRun('cacheService', function () { return CacheLayer.test(); }),
     Utils.safeRun('lockService', function () {
       var lock = LockService.getScriptLock();
