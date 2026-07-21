@@ -965,8 +965,8 @@
         await loadAdminAuditLogs();
         showResult({
           eyebrow: 'Google Meet Access',
-          title: result.config && result.config.accessType === 'OPEN' ? 'ตั้งค่า Open สำเร็จ' : 'ตั้งค่า Google Meet สำเร็จ',
-          message: 'ผู้ที่มีลิงก์จะเข้า Meet ได้ทันทีตามนโยบายที่ตั้งไว้'
+          title: result.config && result.config.status === 'CONFIGURED' ? 'ตั้งค่า Meet สำเร็จ' : 'Google Meet รับการตั้งค่าไม่ครบ',
+          message: `Open access: ${result.config && result.config.accessType || 'ไม่ได้รับค่า'}\nAuto-record: ${result.config && result.config.autoRecording || 'ไม่ได้รับค่า'}\n${result.config && result.config.status === 'CONFIGURED' ? 'ผู้ที่มีลิงก์จะเข้าได้ทันที และ Google Meet พร้อมเริ่มบันทึกเมื่อ Host/Co-host เข้าห้อง' : 'กรุณาส่งข้อความนี้ให้ผู้ดูแลตรวจสิทธิ์ Google Meet API และแพ็กเกจบัญชีอีกครั้ง'}`
         });
       } catch (error) {
         showResult({ eyebrow: 'Google Meet Access', title: 'ตั้งค่า Open ไม่สำเร็จ', message: error.message });

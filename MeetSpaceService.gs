@@ -53,16 +53,23 @@ var MeetSpaceService = (function () {
       config.artifactConfig = { recordingConfig: { autoRecordingGeneration: 'ON' } };
       updateMask.push('config.artifactConfig.recordingConfig.autoRecordingGeneration');
     }
-    var updated = request(
+    request(
       BASE_URL + space.name + '?updateMask=' + encodeURIComponent(updateMask.join(',')),
       'patch',
       { name: space.name, config: config }
     );
+    var verified = getSpaceWhenReady(meetingCode);
+    var verifiedConfig = verified.config || {};
+    var recordingConfig = verifiedConfig.artifactConfig && verifiedConfig.artifactConfig.recordingConfig;
+    var accessType = verifiedConfig.accessType || '';
+    var autoRecording = recordingConfig && recordingConfig.autoRecordingGeneration || '';
     return {
-      status: 'CONFIGURED',
-      spaceName: updated.name,
-      accessType: updated.config && updated.config.accessType,
-      autoRecording: updated.config && updated.config.artifactConfig && updated.config.artifactConfig.recordingConfig && updated.config.artifactConfig.recordingConfig.autoRecordingGeneration
+      status: (enableOpenAccess && accessType !== 'OPEN') || (enableAutoRecording && autoRecording !== 'ON') ? 'CONFIGURED_PARTIAL' : 'CONFIGURED',
+      spaceName: verified.name,
+      accessType: accessType,
+      autoRecording: autoRecording,
+      openAccessRequested: enableOpenAccess,
+      autoRecordingRequested: enableAutoRecording
     };
   }
 
