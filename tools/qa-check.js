@@ -40,6 +40,8 @@ const requiredIds = [
   'calendarInviteRequesterToggle',
   'meetOpenAccessToggle',
   'meetAutoRecordingToggle',
+  'adminFeatureSettingsState',
+  'adminMeetAuthorizationButton',
   'adminSyncMeetRecordingsButton',
   'adminClearBookingDataButton',
   'diagnosticsButton'
@@ -76,6 +78,8 @@ if (!read('CalendarService.gs').includes("SettingsService.get('calendar_invite_r
 if (!read('MeetSpaceService.gs').includes("accessType = 'OPEN'")) fail('Meet policy must support open-link access');
 if (!read('MeetSpaceService.gs').includes("autoRecordingGeneration: 'ON'")) fail('Meet policy must support automatic recording');
 if (!read('MeetSpaceService.gs').includes('getSpaceWhenReady')) fail('Meet space configuration must retry after Calendar creation');
+if (!read('MeetSpaceService.gs').includes('authorizationDiagnostics')) fail('Meet OAuth authorization diagnostics are missing');
+if (!read('appsscript.json').includes('meetings.space.created')) fail('Meet settings authorization scope is missing');
 if (!read('MeetRecordingService.gs').includes("function syncMeetRecordings()")) fail('Meet recording sync trigger is missing');
 
 console.log(`QA checks passed (${gasFiles.length} Apps Script files, client JS, Thai encoding, required UI ids, responsive guards).`);

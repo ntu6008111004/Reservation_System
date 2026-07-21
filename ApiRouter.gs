@@ -55,6 +55,9 @@ function routeApi(action, data) {
       case 'adminConfigureMeetAccess':
         var meetSession = AdminAuthService.requireSession(data.sessionToken);
         return ResponseService.success(BookingService.configureMeetAccess(data.bookingId, meetSession.username));
+      case 'adminMeetAuthorizationDiagnostics':
+        AdminAuthService.requireSession(data.sessionToken);
+        return ResponseService.success(MeetSpaceService.authorizationDiagnostics());
       case 'adminClearBookingData':
         var clearSession = AdminAuthService.requireSession(data.sessionToken);
         return ResponseService.success(clearBookingDataForTesting(clearSession.username));

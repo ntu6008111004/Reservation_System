@@ -47,6 +47,23 @@ var MeetSpaceService = (function () {
     };
   }
 
+  function authorizationDiagnostics() {
+    var response = UrlFetchApp.fetch('https://oauth2.googleapis.com/tokeninfo?access_token=' + encodeURIComponent(ScriptApp.getOAuthToken()), {
+      muteHttpExceptions: true
+    });
+    if (response.getResponseCode() !== 200) {
+      throw new Error('Cannot inspect Google OAuth scope: ' + response.getContentText());
+    }
+    var info = JSON.parse(response.getContentText());
+    var scopes = String(info.scope || '').split(/\s+/);
+    return {
+      meetSettingsGranted: scopes.indexOf('https://www.googleapis.com/auth/meetings.space.settings') !== -1,
+      meetReadonlyGranted: scopes.indexOf('https://www.googleapis.com/auth/meetings.space.readonly') !== -1,
+      meetCreatedGranted: scopes.indexOf('https://www.googleapis.com/auth/meetings.space.created') !== -1,
+      scopeCount: scopes.filter(function (scope) { return scope; }).length
+    };
+  }
+
   function configureForBooking(meetUrl) {
     var enableOpenAccess = SettingsService.get('meet_open_access_enabled', 'true') === 'true';
     var enableAutoRecording = SettingsService.get('meet_auto_recording_enabled', 'true') === 'true';
@@ -95,6 +112,7 @@ var MeetSpaceService = (function () {
     request: request,
     getSpaceWhenReady: getSpaceWhenReady,
     configSnapshot: configSnapshot,
+    authorizationDiagnostics: authorizationDiagnostics,
     configureForBooking: configureForBooking
   };
 })();

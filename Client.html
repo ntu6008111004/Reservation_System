@@ -83,6 +83,8 @@
   const calendarInviteRequesterToggle = document.getElementById('calendarInviteRequesterToggle');
   const meetOpenAccessToggle = document.getElementById('meetOpenAccessToggle');
   const meetAutoRecordingToggle = document.getElementById('meetAutoRecordingToggle');
+  const adminFeatureSettingsState = document.getElementById('adminFeatureSettingsState');
+  const adminMeetAuthorizationButton = document.getElementById('adminMeetAuthorizationButton');
   const adminSyncMeetRecordingsButton = document.getElementById('adminSyncMeetRecordingsButton');
   const adminClearBookingDataButton = document.getElementById('adminClearBookingDataButton');
   const adminTotalBookings = document.getElementById('adminTotalBookings');
@@ -577,6 +579,7 @@
     adminRoomsButton.disabled = !session;
     adminAuditButton.disabled = !session;
     adminFeatureSettingsSaveButton.disabled = !session;
+    adminMeetAuthorizationButton.disabled = !session;
     adminSyncMeetRecordingsButton.disabled = !session;
     adminClearBookingDataButton.disabled = !session;
     adminLogoutButton.disabled = !session;
@@ -728,11 +731,18 @@
     meetAutoRecordingToggle.checked = !!settings.meetAutoRecordingEnabled;
   }
 
+  function setFeatureSettingsState(message, stateClass) {
+    adminFeatureSettingsState.textContent = message;
+    adminFeatureSettingsState.className = `feature-settings-state${stateClass ? ` ${stateClass}` : ''}`;
+  }
+
   async function loadAdminFeatureSettings() {
     try {
       const settings = await callApi('adminFeatureSettings', { sessionToken: state.adminSessionToken });
       renderFeatureSettings(settings || {});
+      setFeatureSettingsState('โหลดค่าที่บันทึกไว้แล้ว', 'is-saved');
     } catch (error) {
+      setFeatureSettingsState(`โหลดการตั้งค่าไม่สำเร็จ: ${error.message}`, 'is-error');
       showResult({ eyebrow: 'Feature Settings', title: 'โหลดการตั้งค่าไม่สำเร็จ', message: error.message });
     }
   }
@@ -890,6 +900,7 @@
   adminFeatureSettingsSaveButton.addEventListener('click', async () => {
     if (!state.adminSessionToken) return;
     adminFeatureSettingsSaveButton.disabled = true;
+    setFeatureSettingsState('กำลังบันทึกและตรวจค่าที่บันทึก...', '');
     showLoading('กำลังบันทึกการตั้งค่า...');
     try {
       const settings = await callApi('adminUpdateFeatureSettings', {
@@ -901,12 +912,37 @@
       });
       renderFeatureSettings(settings || {});
       await loadAdminAuditLogs();
+      setFeatureSettingsState(`บันทึกแล้ว ${formatDateTime(new Date().toISOString())}`, 'is-saved');
       showToast('บันทึกการตั้งค่าแล้ว', 'success');
+      showResult({
+        eyebrow: 'Feature Settings',
+        title: 'บันทึกการตั้งค่าแล้ว',
+        message: `อีเมลแจ้งเตือน: ${settings.emailNotificationsEnabled ? 'เปิด' : 'ปิด'}\nเชิญอีเมลผู้จอง: ${settings.calendarInviteRequesterEnabled ? 'เปิด' : 'ปิด'}\nOpen access ของ Meet: ${settings.meetOpenAccessEnabled ? 'เปิด' : 'ปิด'}\nAuto-record ของ Meet: ${settings.meetAutoRecordingEnabled ? 'เปิด' : 'ปิด'}`
+      });
     } catch (error) {
+      setFeatureSettingsState(`บันทึกไม่สำเร็จ: ${error.message}`, 'is-error');
       showResult({ eyebrow: 'Feature Settings', title: 'บันทึกการตั้งค่าไม่สำเร็จ', message: error.message });
     } finally {
       hideLoading();
       adminFeatureSettingsSaveButton.disabled = !state.adminSessionToken;
+    }
+  });
+  adminMeetAuthorizationButton.addEventListener('click', async () => {
+    if (!state.adminSessionToken) return;
+    adminMeetAuthorizationButton.disabled = true;
+    showLoading('กำลังตรวจสิทธิ์ Google Meet API...');
+    try {
+      const result = await callApi('adminMeetAuthorizationDiagnostics', { sessionToken: state.adminSessionToken });
+      showResult({
+        eyebrow: 'Google Meet API',
+        title: result.meetSettingsGranted ? 'สิทธิ์ตั้งค่า Meet พร้อมใช้งาน' : 'ยังไม่ได้อนุญาตสิทธิ์ตั้งค่า Meet',
+        message: `meetings.space.settings: ${result.meetSettingsGranted ? 'พร้อม' : 'ขาด'}\nmeetings.space.readonly: ${result.meetReadonlyGranted ? 'พร้อม' : 'ขาด'}\nmeetings.space.created: ${result.meetCreatedGranted ? 'พร้อม' : 'ขาด'}\nจำนวน OAuth scopes: ${result.scopeCount || 0}`
+      });
+    } catch (error) {
+      showResult({ eyebrow: 'Google Meet API', title: 'ตรวจสิทธิ์ไม่สำเร็จ', message: error.message });
+    } finally {
+      hideLoading();
+      adminMeetAuthorizationButton.disabled = !state.adminSessionToken;
     }
   });
   adminSyncMeetRecordingsButton.addEventListener('click', async () => {
