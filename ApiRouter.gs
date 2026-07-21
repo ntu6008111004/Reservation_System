@@ -31,7 +31,11 @@ function routeApi(action, data) {
         if (!room) throw new Error('Room not found');
         room.active = String(data.active) === 'true' || data.active === true ? 'true' : 'false';
         DatabaseService.upsertByKey('rooms', 'id', room.id, room);
-        AuditLogService.log(roomSession.username, 'ROOM_STATUS_CHANGED', 'room', room.id, { active: room.active });
+        AuditLogService.log(roomSession.username, 'ROOM_STATUS_CHANGED', 'room', room.id, {
+          roomName: room.name,
+          roomType: room.type,
+          active: room.active
+        });
         return ResponseService.success(room);
       case 'adminAuditLogs':
         AdminAuthService.requireSession(data.sessionToken);

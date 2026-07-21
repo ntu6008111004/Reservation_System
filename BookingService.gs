@@ -65,6 +65,12 @@ var BookingService = (function () {
       });
       AuditLogService.log(input.requesterEmail || input.requesterName, 'BOOKING_CREATED', 'booking', id, {
         roomId: input.roomId,
+        roomName: room.name,
+        title: booking.title,
+        requesterName: booking.requesterName,
+        meetingType: booking.meetingType,
+        startTime: booking.startTime,
+        endTime: booking.endTime,
         emailNotification: emailResult
       });
       return booking;
@@ -103,6 +109,10 @@ var BookingService = (function () {
     });
     AuditLogService.log(actor || 'ADMIN', 'BOOKING_CANCELLED', 'booking', id, {
       roomId: booking.roomId,
+      roomName: booking.roomName,
+      title: booking.title,
+      requesterName: booking.requesterName,
+      meetingType: booking.meetingType,
       startTime: booking.startTime,
       endTime: booking.endTime,
       calendarDelete: calendarDeleteResult,
@@ -122,6 +132,7 @@ var BookingService = (function () {
     booking.meetConfigStatus = config.status || 'CONFIGURED';
     booking.updatedAt = Utils.nowIso();
     DatabaseService.upsertByKey('bookings', 'id', id, booking);
+    config.bookingTitle = booking.title;
     AuditLogService.log(actor || 'ADMIN', 'MEET_ACCESS_CONFIGURED', 'booking', id, config);
     return { booking: booking, config: config };
   }

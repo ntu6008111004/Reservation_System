@@ -82,6 +82,9 @@ if (!read('MeetSpaceService.gs').includes('getSpaceWhenReady')) fail('Meet space
 if (!read('MeetSpaceService.gs').includes('authorizationDiagnostics')) fail('Meet OAuth authorization diagnostics are missing');
 if (!read('appsscript.json').includes('meetings.space.created')) fail('Meet settings authorization scope is missing');
 if (!client.includes("meetStatus === 'CONFIGURED'")) fail('Configured Meet bookings must hide the retry action');
+if (!client.includes("BOOKING_CREATED: 'สร้างรายการจอง'")) fail('Audit actions must have readable Thai labels');
+if (!client.includes('function formatAuditDetails(item)')) fail('Audit details must be human readable');
+if (client.includes('<code>${escapeHtml(detail)}</code>')) fail('Audit table must not render raw JSON details');
 if (!client.includes('ลองตั้งค่า Meet อีกครั้ง')) fail('Pending Meet bookings must keep a retry action');
 if (!read('MeetRecordingService.gs').includes("function syncMeetRecordings()")) fail('Meet recording sync trigger is missing');
 

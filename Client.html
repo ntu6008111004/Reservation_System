@@ -700,23 +700,212 @@
     }
   }
 
+  const auditActionLabels = {
+    ADMIN_LOGIN: 'เข้าสู่ระบบผู้ดูแล',
+    ADMIN_CREATED: 'สร้างบัญชีผู้ดูแล',
+    BOOKING_CREATED: 'สร้างรายการจอง',
+    BOOKING_CANCELLED: 'ยกเลิกรายการจอง',
+    ROOM_STATUS_CHANGED: 'เปลี่ยนสถานะทรัพยากร',
+    FEATURE_SETTINGS_UPDATED: 'แก้ไขการตั้งค่าฟีเจอร์',
+    MEET_ACCESS_CONFIGURED: 'ตั้งค่าสิทธิ์ Google Meet',
+    MEET_RECORDINGS_SYNCED: 'ตรวจสอบไฟล์บันทึก Meet',
+    MEET_RECORDING_ORGANIZED: 'จัดเก็บไฟล์บันทึก Meet',
+    BOOKING_DATA_CLEARED: 'ล้างข้อมูลการจองสำหรับทดสอบ',
+    SCHEMA_REPAIR: 'ตรวจและซ่อมโครงสร้างชีต',
+    API_ERROR: 'ระบบพบข้อผิดพลาด'
+  };
+
+  const auditEntityLabels = {
+    admin: 'บัญชีผู้ดูแล',
+    booking: 'รายการจอง',
+    room: 'ห้องหรือทรัพยากร',
+    settings: 'การตั้งค่าระบบ',
+    recording: 'ไฟล์บันทึก Google Meet',
+    maintenance: 'งานบำรุงรักษาระบบ',
+    sheet: 'ชีตข้อมูล',
+    api: 'การทำงานของระบบ'
+  };
+
+  function parseAuditDetails(value) {
+    if (!value) return {};
+    if (typeof value === 'object') return value;
+    try {
+      const parsed = JSON.parse(value);
+      return parsed && typeof parsed === 'object' ? parsed : { note: value };
+    } catch (error) {
+      return { note: String(value) };
+    }
+  }
+
+  function auditActorLabel(actor) {
+    const value = String(actor || '').trim();
+    if (!value || value === 'SYSTEM') return 'ระบบอัตโนมัติ';
+    if (value === 'ADMIN') return 'ผู้ดูแลระบบ';
+    return value;
+  }
+
+  function auditActionLabel(action) {
+    return auditActionLabels[action] || 'ดำเนินการในระบบ';
+  }
+
+  function auditEntityLabel(entityType) {
+    return auditEntityLabels[String(entityType || '').toLowerCase()] || 'ข้อมูลในระบบ';
+  }
+
+  function auditToggleLabel(value) {
+    const normalized = String(value).trim().toLowerCase();
+    return value === true || normalized === 'true' || normalized === 'on' || normalized === '1' ? 'เปิด' : 'ปิด';
+  }
+
+  function auditMeetStatusLabel(value) {
+    const labels = {
+      CONFIGURED: 'ตั้งค่าสำเร็จ',
+      CONFIGURED_PARTIAL: 'ตั้งค่าได้บางส่วน',
+      DISABLED: 'ปิดใช้งาน',
+      PENDING_SETUP: 'รอตั้งค่า'
+    };
+    return labels[value] || value || '-';
+  }
+
+  function auditEmailResult(value) {
+    const wrapper = value && typeof value === 'object' ? value : {};
+    if (wrapper.ok === false) return `ส่งไม่สำเร็จ: ${wrapper.error || 'ไม่ทราบสาเหตุ'}`;
+    const result = wrapper.result && typeof wrapper.result === 'object' ? wrapper.result : wrapper;
+    if (result.sent) return result.to ? `ส่งแล้วไปยัง ${result.to}` : 'ส่งแล้ว';
+    if (result.skipped && !result.enabled) return 'ไม่ได้ส่ง เพราะฟีเจอร์อีเมลปิดอยู่';
+    if (result.skipped && !result.hasEmail) return 'ไม่ได้ส่ง เพราะผู้จองไม่ได้กรอกอีเมล';
+    return 'ไม่ได้ส่งอีเมล';
+  }
+
+  function auditCalendarResult(value) {
+    const wrapper = value && typeof value === 'object' ? value : {};
+    if (wrapper.ok === false) return `ลบไม่สำเร็จ: ${wrapper.error || 'ไม่ทราบสาเหตุ'}`;
+    const result = wrapper.result && typeof wrapper.result === 'object' ? wrapper.result : wrapper;
+    if (result.deleted) return 'ลบกิจกรรมออกจาก Google Calendar แล้ว';
+    if (result.skipped) return 'ไม่มี Google Calendar ที่ต้องลบ';
+    return 'ไม่มีข้อมูลการลบกิจกรรม';
+  }
+
+  function auditLine(label, value) {
+    return { label: label, value: value === undefined || value === null || value === '' ? '-' : String(value) };
+  }
+
+  function auditOptionalLine(label, value) {
+    return value === undefined || value === null || value === '' ? null : auditLine(label, value);
+  }
+
+  function auditMeetingTypeLabel(value) {
+    if (value === 'ONLINE') return 'ออนไลน์ (Google Meet)';
+    if (value === 'ONSITE') return 'ประชุมในห้อง';
+    if (value === 'OFFSITE') return 'ประชุมนอกสถานที่';
+    return value || '-';
+  }
+
+  function formatAuditDetails(item) {
+    const details = parseAuditDetails(item.details);
+    switch (item.action) {
+      case 'ADMIN_LOGIN':
+        return [auditLine('ผลลัพธ์', 'เข้าสู่ระบบผู้ดูแลสำเร็จ')];
+      case 'ADMIN_CREATED':
+        return [auditLine('สิทธิ์ที่กำหนด', details.role === 'SUPER_ADMIN' ? 'ผู้ดูแลระบบสูงสุด' : details.role)];
+      case 'BOOKING_CREATED':
+        return [
+          auditOptionalLine('หัวข้อประชุม', details.title),
+          auditOptionalLine('ชื่อผู้จอง', details.requesterName),
+          auditOptionalLine('รูปแบบประชุม', details.meetingType ? auditMeetingTypeLabel(details.meetingType) : ''),
+          auditLine('ห้องหรือทรัพยากร', details.roomName || details.roomId),
+          auditOptionalLine('ช่วงเวลา', details.startTime && details.endTime ? `${formatDateTime(details.startTime)} ถึง ${formatDateTime(details.endTime)}` : ''),
+          auditLine('การแจ้งอีเมล', auditEmailResult(details.emailNotification))
+        ].filter(Boolean);
+      case 'BOOKING_CANCELLED':
+        return [
+          auditOptionalLine('หัวข้อประชุม', details.title),
+          auditOptionalLine('ชื่อผู้จอง', details.requesterName),
+          auditOptionalLine('รูปแบบประชุม', details.meetingType ? auditMeetingTypeLabel(details.meetingType) : ''),
+          auditLine('ห้องหรือทรัพยากร', details.roomName || details.roomId),
+          auditLine('ช่วงเวลาเดิม', `${formatDateTime(details.startTime)} ถึง ${formatDateTime(details.endTime)}`),
+          auditLine('Google Calendar', auditCalendarResult(details.calendarDelete)),
+          auditLine('การแจ้งอีเมล', auditEmailResult(details.emailNotification))
+        ].filter(Boolean);
+      case 'ROOM_STATUS_CHANGED':
+        return [
+          auditOptionalLine('ชื่อทรัพยากร', details.roomName),
+          auditLine('สถานะใหม่', auditToggleLabel(details.active) === 'เปิด' ? 'เปิดให้จอง' : 'ปิดไม่ให้จอง')
+        ].filter(Boolean);
+      case 'FEATURE_SETTINGS_UPDATED':
+        return [
+          auditLine('อีเมลแจ้งจอง/ยกเลิก', auditToggleLabel(details.emailNotificationsEnabled)),
+          auditLine('เชิญอีเมลผู้จองเข้า Meet', auditToggleLabel(details.calendarInviteRequesterEnabled)),
+          auditLine('ผู้มีลิงก์ Meet เข้าได้ทันที', auditToggleLabel(details.meetOpenAccessEnabled)),
+          auditLine('บันทึก Meet อัตโนมัติ', auditToggleLabel(details.meetAutoRecordingEnabled))
+        ];
+      case 'MEET_ACCESS_CONFIGURED':
+        return [
+          auditOptionalLine('หัวข้อประชุม', details.bookingTitle),
+          auditLine('ผลการตั้งค่า', auditMeetStatusLabel(details.status)),
+          auditLine('การเข้าห้อง', details.accessType === 'OPEN' ? 'ผู้มีลิงก์เข้าได้ทันที' : (details.accessType || 'ไม่ได้รับค่า')),
+          auditLine('บันทึกอัตโนมัติ', details.autoRecording === 'ON' ? 'เปิด' : (details.autoRecording || 'ไม่ได้รับค่า'))
+        ].filter(Boolean);
+      case 'MEET_RECORDINGS_SYNCED': {
+        const results = Array.isArray(details.results) ? details.results : [];
+        const synced = results.filter((entry) => entry && entry.ok !== false && entry.result && entry.result.synced).length;
+        const failed = results.filter((entry) => entry && entry.ok === false).length;
+        return [
+          auditLine('รายการที่ตรวจ', Number(details.checked || 0)),
+          auditLine('จัดเก็บสำเร็จ', `${synced} รายการ`),
+          auditLine('ไม่สำเร็จ', `${failed} รายการ`),
+          auditLine('โฟลเดอร์ปลายทาง', details.folderUrl || 'ยังไม่มีไฟล์พร้อมจัดเก็บ')
+        ];
+      }
+      case 'MEET_RECORDING_ORGANIZED':
+        return [
+          auditOptionalLine('หัวข้อประชุม', details.bookingTitle),
+          auditLine('ชื่อไฟล์ใหม่', details.fileName),
+          auditLine('รหัสไฟล์ใน Drive', details.fileId)
+        ].filter(Boolean);
+      case 'BOOKING_DATA_CLEARED':
+        return [
+          auditLine('รายการจองที่ลบ', `${Number(details.bookings || 0)} รายการ`),
+          auditLine('ดัชนีเวลาที่ลบ', `${Number(details.bookingIndex || 0)} รายการ`),
+          auditLine('กิจกรรม Calendar ที่ตรวจ', `${Array.isArray(details.calendarCleanup) ? details.calendarCleanup.length : 0} รายการ`)
+        ];
+      case 'SCHEMA_REPAIR':
+        return [auditLine('ผลลัพธ์', 'ตรวจและซ่อมโครงสร้างชีตให้พร้อมใช้งาน')];
+      case 'API_ERROR':
+        return [auditLine('ข้อผิดพลาด', details.message || 'ไม่ทราบรายละเอียด')];
+      default: {
+        const visibleEntries = Object.keys(details).filter((key) => key !== 'diagnostics');
+        if (!visibleEntries.length) return [auditLine('ผลลัพธ์', 'ดำเนินการสำเร็จ')];
+        return visibleEntries.map((key) => {
+          const value = details[key];
+          if (Array.isArray(value)) return auditLine('ข้อมูลเพิ่มเติม', `${value.length} รายการ`);
+          if (value && typeof value === 'object') return auditLine('ข้อมูลเพิ่มเติม', 'มีรายละเอียดทางเทคนิคที่บันทึกไว้ในระบบ');
+          return auditLine('ข้อมูลเพิ่มเติม', value);
+        });
+      }
+    }
+  }
+
+  function renderAuditDetailLines(lines) {
+    return `<div class="audit-detail-list">${lines.map((line) => `
+      <div class="audit-detail-line"><strong>${escapeHtml(line.label)}:</strong> ${escapeHtml(line.value)}</div>
+    `).join('')}</div>`;
+  }
+
   function renderAuditLogs(items) {
     if (!items.length) {
-      adminAuditTableBody.innerHTML = '<tr><td colspan="5">ยังไม่มี Audit Log</td></tr>';
+      adminAuditTableBody.innerHTML = '<tr><td colspan="5">ยังไม่มีประวัติการใช้งานระบบ</td></tr>';
       return;
     }
     adminAuditTableBody.innerHTML = items.map((item) => {
-      let detail = item.details || '';
-      try {
-        detail = JSON.stringify(JSON.parse(item.details || '{}'));
-      } catch (error) {}
+      const detailLines = formatAuditDetails(item);
       return `
         <tr>
           <td>${formatDateTime(item.timestamp)}</td>
-          <td>${escapeHtml(item.actor)}</td>
-          <td>${escapeHtml(item.action)}</td>
-          <td>${escapeHtml(item.entityType)}<br><span class="muted">${escapeHtml(item.entityId)}</span></td>
-          <td><code>${escapeHtml(detail)}</code></td>
+          <td><span class="audit-actor">${escapeHtml(auditActorLabel(item.actor))}</span></td>
+          <td><span class="audit-action">${escapeHtml(auditActionLabel(item.action))}</span></td>
+          <td>${escapeHtml(auditEntityLabel(item.entityType))}<br><span class="muted audit-entity-id">รหัสอ้างอิง: ${escapeHtml(item.entityId || '-')}</span></td>
+          <td>${renderAuditDetailLines(detailLines)}</td>
         </tr>
       `;
     }).join('');

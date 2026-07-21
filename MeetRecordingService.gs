@@ -45,7 +45,11 @@ var MeetRecordingService = (function () {
     booking.recordingSyncedAt = Utils.nowIso();
     booking.updatedAt = booking.recordingSyncedAt;
     DatabaseService.upsertByKey('bookings', 'id', booking.id, booking);
-    AuditLogService.log('SYSTEM', 'MEET_RECORDING_ORGANIZED', 'booking', booking.id, { fileId: file.getId(), fileName: file.getName() });
+    AuditLogService.log('SYSTEM', 'MEET_RECORDING_ORGANIZED', 'booking', booking.id, {
+      bookingTitle: booking.title,
+      fileId: file.getId(),
+      fileName: file.getName()
+    });
     return { synced: true, bookingId: booking.id, fileId: file.getId(), fileName: file.getName() };
   }
 
