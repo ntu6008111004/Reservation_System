@@ -7,3 +7,4 @@ token.json
 node_modules/
 dist/
 .DS_Store
+.clasp-snapshots/

@@ -6,7 +6,7 @@ var AdminAuthService = (function () {
     if (hashPassword(password, admin.salt) !== admin.passwordHash) throw new Error('Invalid admin login');
     var token = Utils.uuid() + Utils.uuid();
     var now = new Date();
-    var expires = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+    var expires = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
     DatabaseService.appendObject('admin_sessions', {
       sessionId: Utils.uuid(),
       username: admin.username,

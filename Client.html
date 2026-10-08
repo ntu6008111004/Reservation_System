@@ -2,18 +2,70 @@
   const state = {
     rooms: [],
     bookings: [],
+    adminBookings: [],
     adminSessionToken: '',
     currentTab: 'booking',
     activeDateInput: null,
-    datePickerMonth: new Date()
+    datePickerMonth: new Date(),
+    maxAttendees: 24,
+    ownerEmail: '',
+    departments: [],
+    attendeeModalBooking: null,
+    attendeeModalMode: 'admin',
+    member: null,
+    memberToken: '',
+    registerPhone: '',
+    myBookings: []
   };
 
   const statusEl = document.getElementById('status');
+  const bookingLayout = document.getElementById('bookingLayout');
+  const attendeeField = document.getElementById('attendeeField');
+  const attendeeInput = document.getElementById('attendeeInput');
+  const attendeeAddButton = document.getElementById('attendeeAddButton');
+  const attendeeError = document.getElementById('attendeeError');
+  const attendeeList = document.getElementById('attendeeList');
+  const attendeeCounter = document.getElementById('attendeeCounter');
+  const attendeeModal = document.getElementById('attendeeModal');
+  const attendeeModalMeta = document.getElementById('attendeeModalMeta');
+  const attendeeModalRequester = document.getElementById('attendeeModalRequester');
+  const attendeeModalInput = document.getElementById('attendeeModalInput');
+  const attendeeModalAddButton = document.getElementById('attendeeModalAddButton');
+  const attendeeModalError = document.getElementById('attendeeModalError');
+  const attendeeModalList = document.getElementById('attendeeModalList');
+  const attendeeModalCounter = document.getElementById('attendeeModalCounter');
+  const attendeeModalSave = document.getElementById('attendeeModalSave');
+  const attendeeModalCancel = document.getElementById('attendeeModalCancel');
+  const attendeeModalClose = document.getElementById('attendeeModalClose');
+  const maxMeetingAttendeesInput = document.getElementById('maxMeetingAttendeesInput');
+  const memberBar = document.getElementById('memberBar');
+  const memberBarName = document.getElementById('memberBarName');
+  const memberBarPhone = document.getElementById('memberBarPhone');
+  const memberLogoutButton = document.getElementById('memberLogoutButton');
+  const memberGate = document.getElementById('memberGate');
+  const memberLoginStep = document.getElementById('memberLoginStep');
+  const memberPhoneInput = document.getElementById('memberPhoneInput');
+  const memberLoginButton = document.getElementById('memberLoginButton');
+  const memberRememberToggle = document.getElementById('memberRememberToggle');
+  const memberRegisterStep = document.getElementById('memberRegisterStep');
+  const memberRegisterPhone = document.getElementById('memberRegisterPhone');
+  const memberFullName = document.getElementById('memberFullName');
+  const memberNickName = document.getElementById('memberNickName');
+  const memberDepartment = document.getElementById('memberDepartment');
+  const memberDepartmentOptions = document.getElementById('memberDepartmentOptions');
+  const memberEmail = document.getElementById('memberEmail');
+  const memberChangePhoneButton = document.getElementById('memberChangePhoneButton');
+  const memberRegisterButton = document.getElementById('memberRegisterButton');
+  const myBookingsPanel = document.getElementById('myBookingsPanel');
+  const myBookingsRefreshButton = document.getElementById('myBookingsRefreshButton');
+  const myUpcomingList = document.getElementById('myUpcomingList');
+  const myHistoryList = document.getElementById('myHistoryList');
   const roomSelect = document.getElementById('roomSelect');
   const roomHint = document.getElementById('roomHint');
   const gpsField = document.getElementById('gpsField');
   const bookingsEl = document.getElementById('bookings');
   const form = document.getElementById('bookingForm');
+  const departmentSelect = document.getElementById('departmentSelect');
   const submitButton = document.getElementById('submitButton');
   const resetButton = document.getElementById('resetButton');
   const refreshButton = document.getElementById('refreshButton');
@@ -42,6 +94,7 @@
   const filterFromDate = document.getElementById('filterFromDate');
   const filterToDate = document.getElementById('filterToDate');
   const filterSearch = document.getElementById('filterSearch');
+  const filterDepartment = document.getElementById('filterDepartment');
   const filteredCount = document.getElementById('filteredCount');
   const onlineCount = document.getElementById('onlineCount');
   const onsiteCount = document.getElementById('onsiteCount');
@@ -54,6 +107,7 @@
   const calendarFilterFromDate = document.getElementById('calendarFilterFromDate');
   const calendarFilterToDate = document.getElementById('calendarFilterToDate');
   const calendarFilterSearch = document.getElementById('calendarFilterSearch');
+  const calendarFilterDepartment = document.getElementById('calendarFilterDepartment');
   const calendarFilteredCount = document.getElementById('calendarFilteredCount');
   const calendarOnlineCount = document.getElementById('calendarOnlineCount');
   const calendarOnsiteCount = document.getElementById('calendarOnsiteCount');
@@ -64,6 +118,7 @@
 
   const adminUsername = document.getElementById('adminUsername');
   const adminPassword = document.getElementById('adminPassword');
+  const adminRememberMeToggle = document.getElementById('adminRememberMeToggle');
   const adminLoginButton = document.getElementById('adminLoginButton');
   const adminLogoutButton = document.getElementById('adminLogoutButton');
   const adminDashboardButton = document.getElementById('adminDashboardButton');
@@ -80,9 +135,26 @@
   const adminAuditTableBody = document.getElementById('adminAuditTableBody');
   const adminFeatureSettingsSaveButton = document.getElementById('adminFeatureSettingsSaveButton');
   const emailNotificationsToggle = document.getElementById('emailNotificationsToggle');
-  const calendarInviteRequesterToggle = document.getElementById('calendarInviteRequesterToggle');
   const meetOpenAccessToggle = document.getElementById('meetOpenAccessToggle');
   const meetAutoRecordingToggle = document.getElementById('meetAutoRecordingToggle');
+  const meetCoHostsToggle = document.getElementById('meetCoHostsToggle');
+  const meetRecordingsAdminOnlyToggle = document.getElementById('meetRecordingsAdminOnlyToggle');
+  const recordingsFolderInput = document.getElementById('recordingsFolderInput');
+  const recordingsFolderSaveButton = document.getElementById('recordingsFolderSaveButton');
+  const recordingsFolderState = document.getElementById('recordingsFolderState');
+  const systemAccountState = document.getElementById('systemAccountState');
+  const assetDepartmentList = document.getElementById('assetDepartmentList');
+  const extraDepartmentList = document.getElementById('extraDepartmentList');
+  const departmentNameInput = document.getElementById('departmentNameInput');
+  const departmentAddButton = document.getElementById('departmentAddButton');
+  const departmentState = document.getElementById('departmentState');
+  const meetAutoEndToggle = document.getElementById('meetAutoEndToggle');
+  const meetAutoEndMinutesInput = document.getElementById('meetAutoEndMinutesInput');
+  const adminRunAutoEndCheckButton = document.getElementById('adminRunAutoEndCheckButton');
+  const adminMeetAutoEndStatusBadge = document.getElementById('adminMeetAutoEndStatusBadge');
+  const adminMeetAutoEndMonitoredCount = document.getElementById('adminMeetAutoEndMonitoredCount');
+  const adminMeetAutoEndSingletonsCount = document.getElementById('adminMeetAutoEndSingletonsCount');
+  const adminMeetAutoEndSingletonsTableBody = document.getElementById('adminMeetAutoEndSingletonsTableBody');
   const adminFeatureSettingsState = document.getElementById('adminFeatureSettingsState');
   const adminMeetAuthorizationButton = document.getElementById('adminMeetAuthorizationButton');
   const adminSyncMeetRecordingsButton = document.getElementById('adminSyncMeetRecordingsButton');
@@ -94,6 +166,7 @@
   const adminCancelledBookings = document.getElementById('adminCancelledBookings');
   const adminActiveRooms = document.getElementById('adminActiveRooms');
   const adminRecentBookings = document.getElementById('adminRecentBookings');
+  const adminDepartmentSummary = document.getElementById('adminDepartmentSummary');
 
   function callApi(action, data) {
     return new Promise((resolve, reject) => {
@@ -125,12 +198,13 @@
   }
 
   function showResult(options) {
+    hideLoading();
     resultEyebrow.textContent = options.eyebrow || 'Result';
     resultTitle.textContent = options.title || 'ทำรายการสำเร็จ';
     resultMessage.textContent = options.message || '';
     resultActions.innerHTML = '';
 
-    if (options.meetUrl) {
+    if (options.meetUrl && /^https?:\/\//i.test(options.meetUrl)) {
       const link = document.createElement('a');
       link.href = options.meetUrl;
       link.target = '_blank';
@@ -170,6 +244,142 @@
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#039;');
   }
+
+  // Only http(s) links are rendered; anything else (e.g. javascript:) becomes a dead link.
+  function safeUrl(value) {
+    const url = String(value || '').trim();
+    return /^https?:\/\//i.test(url) ? escapeHtml(url) : '#';
+  }
+
+  const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  function splitEmails(text) {
+    return String(text || '').split(/[\s,;]+/).map((item) => item.trim().toLowerCase()).filter(Boolean);
+  }
+
+  function parseAttendees(value) {
+    return Array.isArray(value) ? value.slice() : splitEmails(value);
+  }
+
+  function createAttendeeEditor(options) {
+    let emails = [];
+
+    function showError(message) {
+      options.error.textContent = message || '';
+      options.error.hidden = !message;
+    }
+
+    function render() {
+      options.list.innerHTML = emails.map((email) => `
+        <li class="attendee-chip"><span>${escapeHtml(email)}</span><button type="button" class="attendee-remove" data-email="${escapeHtml(email)}" aria-label="ลบ ${escapeHtml(email)}" title="ลบ">×</button></li>
+      `).join('');
+      const max = options.getMax();
+      options.counter.textContent = emails.length
+        ? `ผู้ร่วมจัด ${emails.length} / ${max} อีเมล`
+        : `ยังไม่ได้ใส่อีเมล (ต้องใส่อย่างน้อย 1 คน สูงสุด ${max} คน)`;
+      options.counter.classList.toggle('is-full', emails.length >= max);
+    }
+
+    function add(text) {
+      const result = { added: [], invalid: [], duplicates: [], overLimit: [] };
+      const alreadyInvited = (options.getAlreadyInvited ? options.getAlreadyInvited() : []).map((email) => String(email || '').trim().toLowerCase());
+      splitEmails(text).forEach((email) => {
+        if (email.length > 254 || !EMAIL_PATTERN.test(email)) result.invalid.push(email);
+        else if (emails.includes(email) || alreadyInvited.includes(email) || result.added.includes(email)) result.duplicates.push(email);
+        else if (emails.length >= options.getMax()) result.overLimit.push(email);
+        else {
+          emails.push(email);
+          result.added.push(email);
+        }
+      });
+      render();
+      return result;
+    }
+
+    function addFromInput(rawText) {
+      const text = rawText === undefined ? options.input.value : rawText;
+      if (!text.trim()) {
+        showError('');
+        return { added: [], invalid: [], duplicates: [], overLimit: [] };
+      }
+      const result = add(text);
+      const messages = [];
+      if (result.invalid.length) messages.push(`อีเมลไม่ถูกต้อง: ${result.invalid.join(', ')}`);
+      if (result.overLimit.length) messages.push(`เพิ่มได้สูงสุด ${options.getMax()} อีเมล (เกิน: ${result.overLimit.join(', ')})`);
+      if (result.duplicates.length) messages.push(`มีในรายชื่อแล้วหรือได้รับเชิญอยู่แล้ว: ${result.duplicates.join(', ')}`);
+      showError(messages.join('\n'));
+      // Keep what could not be added in the box so the user can fix it.
+      options.input.value = result.invalid.concat(result.overLimit).join(', ');
+      return result;
+    }
+
+    function set(list) {
+      emails = [];
+      showError('');
+      options.input.value = '';
+      add(parseAttendees(list).join(' '));
+    }
+
+    options.addButton.addEventListener('click', () => {
+      addFromInput();
+      options.input.focus();
+    });
+    options.input.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ',' || event.key === ';') {
+        event.preventDefault();
+        addFromInput();
+      }
+    });
+    // Read the clipboard directly: single-line inputs drop line breaks, which would glue
+    // a pasted column of emails (e.g. from Excel) into one invalid address.
+    options.input.addEventListener('paste', (event) => {
+      const pasted = event.clipboardData ? event.clipboardData.getData('text') : '';
+      if (pasted && splitEmails(pasted).length > 1) {
+        event.preventDefault();
+        addFromInput(`${options.input.value} ${pasted}`);
+        return;
+      }
+      window.setTimeout(() => {
+        if (splitEmails(options.input.value).length > 1) addFromInput();
+      }, 0);
+    });
+    options.list.addEventListener('click', (event) => {
+      const button = event.target.closest('.attendee-remove');
+      if (!button) return;
+      emails = emails.filter((email) => email !== button.dataset.email);
+      showError('');
+      render();
+    });
+
+    render();
+    return {
+      addFromInput,
+      set,
+      get: () => emails.slice(),
+      clear: () => set([]),
+      render
+    };
+  }
+
+  const bookingAttendees = createAttendeeEditor({
+    input: attendeeInput,
+    addButton: attendeeAddButton,
+    error: attendeeError,
+    list: attendeeList,
+    counter: attendeeCounter,
+    getMax: () => state.maxAttendees,
+    getAlreadyInvited: () => [form.elements.requesterEmail.value]
+  });
+
+  const modalAttendees = createAttendeeEditor({
+    input: attendeeModalInput,
+    addButton: attendeeModalAddButton,
+    error: attendeeModalError,
+    list: attendeeModalList,
+    counter: attendeeModalCounter,
+    getMax: () => state.maxAttendees,
+    getAlreadyInvited: () => [state.attendeeModalBooking ? state.attendeeModalBooking.requesterEmail : '']
+  });
 
   function pad2(value) {
     return String(value).padStart(2, '0');
@@ -355,6 +565,7 @@
     if (!data.roomId) missing.push('ห้องประชุม / ทรัพยากร');
     if (!data.title) missing.push('หัวข้อประชุม');
     if (!data.requesterName) missing.push('ชื่อผู้จอง');
+    if (!data.department) missing.push('ฝ่าย');
     if (!data.startDate) missing.push('วันที่เริ่ม');
     if (!data.startClock) missing.push('เวลาเริ่ม');
     if (!data.endDate) missing.push('วันที่สิ้นสุด');
@@ -363,8 +574,16 @@
     if (data.requesterEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.requesterEmail)) {
       throw new Error('อีเมลผู้จองไม่ถูกต้อง ถ้าไม่ต้องการใส่อีเมลให้เว้นว่างไว้');
     }
-    if (data.gpsUrl && !/^https?:\/\/.+/i.test(data.gpsUrl)) {
-      throw new Error('ลิงก์ GPS ต้องขึ้นต้นด้วย http:// หรือ https://');
+    if (data.meetingType === 'OFFSITE' && data.gpsUrl && !/^https?:\/\/[^\s"'<>]+$/i.test(data.gpsUrl.trim())) {
+      throw new Error('ลิงก์ GPS ต้องขึ้นต้นด้วย http:// หรือ https:// และห้ามมีช่องว่างหรือเครื่องหมายคำพูด');
+    }
+    if (data.meetingType === 'ONLINE') {
+      const pending = bookingAttendees.addFromInput();
+      if (pending.invalid.length || pending.overLimit.length) {
+        throw new Error(`กรุณาตรวจอีเมลผู้ร่วมจัด: ${pending.invalid.concat(pending.overLimit).join(', ')}`);
+      }
+      if (!bookingAttendees.get().length) throw new Error('กรุณาใส่อีเมลอย่างน้อย 1 คน (ใส่อีเมลตัวเองก็ได้) เพื่อให้มีคนเปิดห้องและอัดวิดีโอการประชุมได้');
+      data.attendeeEmails = bookingAttendees.get();
     }
     const start = parseThaiDateTime(data.startDate, data.startClock, 'เวลาเริ่ม');
     const end = parseThaiDateTime(data.endDate, data.endClock, 'เวลาสิ้นสุด');
@@ -400,301 +619,729 @@
 
   function renderRooms() {
     const meetingType = getSelectedMeetingType();
-    const rooms = getRoomOptionsForMeetingType(meetingType);
-    roomSelect.innerHTML = rooms.map((room) => {
-      const capacity = room.capacity ? ` · ${room.capacity} ที่นั่ง` : '';
-      return `<option value="${escapeHtml(room.id)}">${escapeHtml(room.name)}${capacity}</option>`;
-    }).join('') || '<option value="">ไม่มีห้องที่ตรงเงื่อนไข</option>';
-    roomSelect.disabled = rooms.length === 0;
-    if (meetingType === 'ONLINE') {
-      roomHint.textContent = 'ออนไลน์เท่านั้น: แสดงเฉพาะ resource สำหรับสร้าง Google Meet';
-    } else if (meetingType === 'OFFSITE') {
-      roomHint.textContent = 'นอกสถานที่: แสดงเฉพาะ resource สำหรับบันทึกการประชุมนอกสถานที่';
-    } else {
-      roomHint.textContent = 'ประชุมในห้อง: แสดงเฉพาะห้องประชุมจริง';
-    }
+    const availableRooms = getRoomOptionsForMeetingType(meetingType);
     gpsField.hidden = meetingType !== 'OFFSITE';
+    attendeeField.hidden = meetingType !== 'ONLINE';
 
-    filterRoom.innerHTML = '<option value="">ทุกห้อง</option>' + state.rooms.map((room) => {
-      return `<option value="${escapeHtml(room.id)}">${escapeHtml(room.name)}</option>`;
-    }).join('');
-    calendarFilterRoom.innerHTML = filterRoom.innerHTML;
-    metricRooms.textContent = state.rooms.length;
-  }
+    if (!availableRooms.length) {
+      roomSelect.innerHTML = '<option value="">ไม่มีทรัพยากรสำหรับรูปแบบนี้</option>';
+      roomHint.textContent = 'ไม่พบทรัพยากรที่เปิดใช้งานสำหรับรูปแบบประชุมที่เลือก';
+      return;
+    }
 
-  function bookingCardHtml(item) {
-    const typeLabel = meetingTypeLabel(item.meetingType);
-    return `
-      <article class="booking-card">
-        <header>
-          <h3>${escapeHtml(item.title)}</h3>
-          <span class="badge">${typeLabel}</span>
-        </header>
-        <p>${escapeHtml(item.roomName)}<br>${formatDateTime(item.startTime)} - ${formatDateTime(item.endTime)}</p>
-        <p>ผู้จอง: ${escapeHtml(item.requesterName || item.requesterEmail)}</p>
-        ${item.meetUrl ? `<a class="meet-link" href="${escapeHtml(item.meetUrl)}" target="_blank" rel="noopener">เปิด Google Meet</a>` : ''}
-        ${item.gpsUrl ? `<a class="meet-link" href="${escapeHtml(item.gpsUrl)}" target="_blank" rel="noopener">เปิด GPS</a>` : ''}
-      </article>
-    `;
+    roomSelect.innerHTML = availableRooms.map((room) => `
+      <option value="${escapeHtml(room.id)}">${escapeHtml(room.name)} (ความจุ ${escapeHtml(room.capacity)} คน · ${escapeHtml(room.location)})</option>
+    `).join('');
+
+    const filterOptions = state.rooms.map((room) => `<option value="${escapeHtml(room.id)}">${escapeHtml(room.name)}</option>`).join('');
+    filterRoom.innerHTML = `<option value="">ทั้งหมด</option>${filterOptions}`;
+    calendarFilterRoom.innerHTML = `<option value="">ทั้งหมด</option>${filterOptions}`;
+    roomHint.textContent = `แสดงเฉพาะทรัพยากรประเภท ${meetingTypeLabel(meetingType)}`;
   }
 
   function renderBookings(items) {
     metricBookings.textContent = items.length;
-    bookingsEl.innerHTML = items.length ? items.slice(0, 8).map(bookingCardHtml).join('') : '<div class="empty">ยังไม่มีรายการจองล่าสุด</div>';
+    metricRooms.textContent = state.rooms.length;
+
+    if (!items.length) {
+      bookingsEl.innerHTML = '<div class="empty">ยังไม่มีรายการจองในระบบ</div>';
+      return;
+    }
+
+    bookingsEl.innerHTML = items.slice(0, 10).map((booking) => `
+      <article class="booking-item">
+        <div class="booking-top">
+          <span class="booking-title">${escapeHtml(booking.title)}</span>
+          <span class="badge ${String(booking.meetingType || 'ONSITE').toLowerCase()}">${escapeHtml(meetingTypeLabel(booking.meetingType))}</span>
+        </div>
+        <div class="meta">
+          <span>${formatDateTime(booking.startTime)} - ${formatDateTime(booking.endTime)}</span>
+          <span>${escapeHtml(booking.roomName || booking.roomId)}</span>
+          <span>ผู้จอง: ${escapeHtml(booking.requesterName)}</span>
+          ${booking.meetUrl ? `<a href="${safeUrl(booking.meetUrl)}" target="_blank" rel="noopener">เข้า Google Meet</a>` : ''}
+          ${booking.gpsUrl ? `<a href="${safeUrl(booking.gpsUrl)}" target="_blank" rel="noopener">เปิด GPS / Google Maps</a>` : ''}
+        </div>
+      </article>
+    `).join('');
   }
 
-  function getFilteredBookings(filters) {
-    let fromDate = null;
-    let toDate = null;
-    if (filters.fromDate.value) fromDate = parseDateOnly(filters.fromDate.value, 'ตั้งแต่วันที่', false);
-    if (filters.toDate.value) toDate = parseDateOnly(filters.toDate.value, 'ถึงวันที่', true);
+  function getFilterValues(prefix) {
+    if (prefix === 'calendar') {
+      return {
+        roomId: calendarFilterRoom.value,
+        meetingType: calendarFilterType.value,
+        department: calendarFilterDepartment.value,
+        fromDate: parseDateOnly(calendarFilterFromDate.value, 'ตั้งแต่วันที่', false),
+        toDate: parseDateOnly(calendarFilterToDate.value, 'ถึงวันที่', true),
+        search: calendarFilterSearch.value.trim().toLowerCase()
+      };
+    }
+    return {
+      roomId: filterRoom.value,
+      meetingType: filterType.value,
+      department: filterDepartment.value,
+      fromDate: parseDateOnly(filterFromDate.value, 'ตั้งแต่วันที่', false),
+      toDate: parseDateOnly(filterToDate.value, 'ถึงวันที่', true),
+      search: filterSearch.value.trim().toLowerCase()
+    };
+  }
 
-    const query = filters.search.value.trim().toLowerCase();
-    return state.bookings.filter((item) => {
-      const start = new Date(item.startTime);
-      const searchable = [item.title, item.roomName, item.requesterName, item.requesterEmail, item.meetingType].join(' ').toLowerCase();
-      if (filters.room.value && item.roomId !== filters.room.value) return false;
-      if (filters.type.value && item.meetingType !== filters.type.value) return false;
-      if (fromDate && start < fromDate) return false;
-      if (toDate && start > toDate) return false;
-      if (query && !searchable.includes(query)) return false;
+  function filterBookingItems(filters) {
+    return state.bookings.filter((booking) => {
+      if (filters.roomId && booking.roomId !== filters.roomId) return false;
+      if (filters.meetingType && String(booking.meetingType).toUpperCase() !== filters.meetingType) return false;
+      if (filters.department === NO_DEPARTMENT && booking.department) return false;
+      if (filters.department && filters.department !== NO_DEPARTMENT && booking.department !== filters.department) return false;
+      const start = new Date(booking.startTime);
+      const end = new Date(booking.endTime);
+      if (filters.fromDate && end < filters.fromDate) return false;
+      if (filters.toDate && start > filters.toDate) return false;
+      if (filters.search) {
+        const text = [
+          booking.title,
+          booking.requesterName,
+          booking.requesterEmail,
+          booking.roomName,
+          departmentLabel(booking.department),
+          booking.notes
+        ].join(' ').toLowerCase();
+        if (!text.includes(filters.search)) return false;
+      }
       return true;
-    }).sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
+    });
   }
 
-  function updateSummary(items, nodes) {
-    nodes.total.textContent = items.length;
-    nodes.online.textContent = items.filter((item) => item.meetingType === 'ONLINE').length;
-    nodes.onsite.textContent = items.filter((item) => item.meetingType === 'ONSITE').length;
-    nodes.offsite.textContent = items.filter((item) => item.meetingType === 'OFFSITE').length;
+  function renderSummaryCounts(items, prefix) {
+    const total = items.length;
+    const online = items.filter((b) => b.meetingType === 'ONLINE').length;
+    const onsite = items.filter((b) => b.meetingType === 'ONSITE').length;
+    const offsite = items.filter((b) => b.meetingType === 'OFFSITE').length;
+
+    if (prefix === 'calendar') {
+      calendarFilteredCount.textContent = total;
+      calendarOnlineCount.textContent = online;
+      calendarOnsiteCount.textContent = onsite;
+      calendarOffsiteCount.textContent = offsite;
+    } else {
+      filteredCount.textContent = total;
+      onlineCount.textContent = online;
+      onsiteCount.textContent = onsite;
+      offsiteCount.textContent = offsite;
+    }
   }
 
   function renderList() {
     let items = [];
     try {
-      items = getFilteredBookings({
-        room: filterRoom,
-        type: filterType,
-        fromDate: filterFromDate,
-        toDate: filterToDate,
-        search: filterSearch
-      });
+      items = filterBookingItems(getFilterValues('list'));
     } catch (error) {
       showToast(error.message, 'error');
       return;
     }
 
-    updateSummary(items, {
-      total: filteredCount,
-      online: onlineCount,
-      onsite: onsiteCount,
-      offsite: offsiteCount
-    });
+    renderSummaryCounts(items, 'list');
 
     if (!items.length) {
-      filteredCards.innerHTML = '<div class="empty">ไม่พบรายการจองตามเงื่อนไข</div>';
-      bookingTableBody.innerHTML = '<tr><td colspan="7">ไม่พบรายการจอง</td></tr>';
+      filteredCards.innerHTML = '<div class="empty">ไม่พบรายการจองตามเงื่อนไขที่ค้นหา</div>';
+      bookingTableBody.innerHTML = '<tr><td colspan="7">ไม่พบรายการจองตามเงื่อนไขที่ค้นหา</td></tr>';
       return;
     }
 
-    filteredCards.innerHTML = items.map(bookingCardHtml).join('');
-    bookingTableBody.innerHTML = items.map((item) => `
+    filteredCards.innerHTML = items.map((booking) => `
+      <article class="booking-card-item">
+        <div class="booking-top">
+          <span class="booking-title">${escapeHtml(booking.title)}</span>
+          <span class="badge ${String(booking.meetingType || 'ONSITE').toLowerCase()}">${escapeHtml(meetingTypeLabel(booking.meetingType))}</span>
+        </div>
+        <div class="meta">
+          <span><strong>เวลา:</strong> ${formatDateTime(booking.startTime)} - ${formatDateTime(booking.endTime)}</span>
+          <span><strong>ห้อง:</strong> ${escapeHtml(booking.roomName || booking.roomId)}</span>
+          <span><strong>ฝ่าย:</strong> ${escapeHtml(departmentLabel(booking.department))}</span>
+          <span><strong>ผู้จอง:</strong> ${escapeHtml(booking.requesterName)} ${booking.requesterEmail ? `(${escapeHtml(booking.requesterEmail)})` : ''}</span>
+          ${booking.notes ? `<span><strong>หมายเหตุ:</strong> ${escapeHtml(booking.notes)}</span>` : ''}
+          ${parseAttendees(booking.attendeeEmails).length ? `<span><strong>ผู้ร่วมจัด:</strong> ${parseAttendees(booking.attendeeEmails).length} คน</span>` : ''}
+          ${booking.meetUrl ? `<a href="${safeUrl(booking.meetUrl)}" target="_blank" rel="noopener">เปิด Google Meet</a>` : ''}
+          ${booking.gpsUrl ? `<a href="${safeUrl(booking.gpsUrl)}" target="_blank" rel="noopener">เปิด GPS / Google Maps</a>` : ''}
+        </div>
+      </article>
+    `).join('');
+
+    bookingTableBody.innerHTML = items.map((booking) => `
       <tr>
-        <td>${formatDateTime(item.startTime)}<br><span class="muted">${formatDateTime(item.endTime)}</span></td>
-        <td>${escapeHtml(item.title)}</td>
-        <td>${escapeHtml(item.roomName)}</td>
-        <td>${escapeHtml(item.requesterName || item.requesterEmail)}</td>
-        <td>${meetingTypeLabel(item.meetingType)}</td>
-        <td>${item.meetUrl ? `<a href="${escapeHtml(item.meetUrl)}" target="_blank" rel="noopener">เปิด</a>` : '-'}</td>
-        <td>${item.gpsUrl ? `<a href="${escapeHtml(item.gpsUrl)}" target="_blank" rel="noopener">เปิด</a>` : '-'}</td>
+        <td>${formatDateTime(booking.startTime)}<br><small class="muted">ถึง ${formatDateTime(booking.endTime)}</small></td>
+        <td><strong>${escapeHtml(booking.title)}</strong>${booking.notes ? `<br><small class="muted">${escapeHtml(booking.notes)}</small>` : ''}</td>
+        <td>${escapeHtml(booking.roomName || booking.roomId)}</td>
+        <td>${escapeHtml(booking.requesterName)}${booking.requesterEmail ? `<br><small class="muted">${escapeHtml(booking.requesterEmail)}</small>` : ''}<br><small class="muted">${escapeHtml(departmentLabel(booking.department))}</small></td>
+        <td><span class="badge ${String(booking.meetingType || 'ONSITE').toLowerCase()}">${escapeHtml(meetingTypeLabel(booking.meetingType))}</span></td>
+        <td>${booking.meetUrl ? `<a href="${safeUrl(booking.meetUrl)}" target="_blank" rel="noopener">เข้า Meet</a>` : '-'}</td>
+        <td>${booking.gpsUrl ? `<a href="${safeUrl(booking.gpsUrl)}" target="_blank" rel="noopener">เปิดแผนที่</a>` : '-'}</td>
       </tr>
     `).join('');
+  }
+
+  function groupBookingsByDay(items) {
+    const groups = {};
+    items.forEach((booking) => {
+      const dayKey = formatDayKey(booking.startTime);
+      if (!groups[dayKey]) groups[dayKey] = [];
+      groups[dayKey].push(booking);
+    });
+    return groups;
   }
 
   function renderCalendar() {
     let items = [];
     try {
-      items = getFilteredBookings({
-        room: calendarFilterRoom,
-        type: calendarFilterType,
-        fromDate: calendarFilterFromDate,
-        toDate: calendarFilterToDate,
-        search: calendarFilterSearch
-      });
+      items = filterBookingItems(getFilterValues('calendar'));
     } catch (error) {
       showToast(error.message, 'error');
       return;
     }
 
-    updateSummary(items, {
-      total: calendarFilteredCount,
-      online: calendarOnlineCount,
-      onsite: calendarOnsiteCount,
-      offsite: calendarOffsiteCount
-    });
+    renderSummaryCounts(items, 'calendar');
 
     if (!items.length) {
-      calendarBoard.innerHTML = '<div class="empty">ไม่พบรายการจองตามเงื่อนไข</div>';
+      calendarBoard.innerHTML = '<div class="empty">ไม่พบรายการจองตามเงื่อนไขที่เลือกในปฏิทิน</div>';
       return;
     }
 
-    const groups = items.reduce((acc, item) => {
-      const key = formatDayKey(item.startTime);
-      acc[key] = acc[key] || [];
-      acc[key].push(item);
-      return acc;
-    }, {});
+    const groups = groupBookingsByDay(items);
+    const sortedDays = Object.keys(groups).sort((a, b) => {
+      const first = groups[a][0] ? new Date(groups[a][0].startTime) : 0;
+      const second = groups[b][0] ? new Date(groups[b][0].startTime) : 0;
+      return first - second;
+    });
 
-    calendarBoard.innerHTML = Object.keys(groups).map((day) => `
-      <section class="day-column">
-        <h3>${day}</h3>
-        ${groups[day].map((item) => `
-          <div class="calendar-event">
-            <strong>${formatTimeInput(new Date(item.startTime))} - ${formatTimeInput(new Date(item.endTime))}</strong>
-            <span>${escapeHtml(item.title)}</span>
-            <small>${escapeHtml(item.roomName)} · ${meetingTypeLabel(item.meetingType)}</small>
+    calendarBoard.innerHTML = sortedDays.map((dayKey) => {
+      const dayBookings = groups[dayKey];
+      return `
+        <section class="calendar-day-column">
+          <header class="calendar-day-header">
+            <strong>${dayKey}</strong>
+            <span>${dayBookings.length} รายการ</span>
+          </header>
+          <div class="calendar-events">
+            ${dayBookings.map((booking) => `
+              <article class="calendar-event-card ${String(booking.meetingType || 'ONSITE').toLowerCase()}">
+                <div class="event-time">${formatTimeInput(new Date(booking.startTime))} - ${formatTimeInput(new Date(booking.endTime))} น.</div>
+                <strong class="event-title">${escapeHtml(booking.title)}</strong>
+                <div class="event-meta">
+                  <span>${escapeHtml(booking.roomName || booking.roomId)}</span>
+                  <span>${escapeHtml(booking.requesterName)}</span>
+                  <span>${escapeHtml(departmentLabel(booking.department))}</span>
+                </div>
+                ${booking.meetUrl ? `<a class="event-link" href="${safeUrl(booking.meetUrl)}" target="_blank" rel="noopener">Google Meet</a>` : ''}
+                ${booking.gpsUrl ? `<a class="event-link" href="${safeUrl(booking.gpsUrl)}" target="_blank" rel="noopener">แผนที่ GPS</a>` : ''}
+              </article>
+            `).join('')}
           </div>
-        `).join('')}
-      </section>
-    `).join('');
+        </section>
+      `;
+    }).join('');
   }
 
-  async function refreshBookings() {
-    state.bookings = await callApi('listBookings');
+  function applyBookings(items) {
+    state.bookings = items || [];
     renderBookings(state.bookings);
     renderList();
     renderCalendar();
   }
 
+  // Booking lists are admin-only; the public page just books.
+  async function refreshBookings() {
+    if (!state.adminSessionToken) {
+      applyBookings([]);
+      return;
+    }
+    applyBookings(await callApi('listBookings', { sessionToken: state.adminSessionToken }));
+  }
+
   function setAdminLoggedIn(session) {
-    state.adminSessionToken = session ? session.sessionToken : '';
-    adminState.textContent = session ? `เข้าสู่ระบบ: ${session.username}` : 'ยังไม่ได้เข้าสู่ระบบ';
-    adminLockedMessage.hidden = !!session;
-    adminOnlyPanels.forEach((panel) => {
-      panel.hidden = !session;
-    });
-    diagnosticsButton.disabled = !session;
-    adminDashboardButton.disabled = !session;
-    adminBookingsButton.disabled = !session;
-    adminRoomsButton.disabled = !session;
-    adminAuditButton.disabled = !session;
-    adminFeatureSettingsSaveButton.disabled = !session;
-    adminMeetAuthorizationButton.disabled = !session;
-    adminSyncMeetRecordingsButton.disabled = !session;
-    adminClearBookingDataButton.disabled = !session;
-    adminLogoutButton.disabled = !session;
-    adminLoginButton.disabled = !!session;
+    state.adminSessionToken = session ? (session.sessionToken || session.token || '') : '';
+    if (session && state.adminSessionToken) {
+      adminState.textContent = `ผู้ดูแล: ${session.username}`;
+      adminState.className = 'pill success-pill';
+      adminLockedMessage.hidden = true;
+      adminOnlyPanels.forEach((panel) => { panel.hidden = false; });
+      adminDashboardButton.disabled = false;
+      adminBookingsButton.disabled = false;
+      adminRoomsButton.disabled = false;
+      adminAuditButton.disabled = false;
+      adminFeatureSettingsSaveButton.disabled = false;
+      recordingsFolderSaveButton.disabled = false;
+      departmentAddButton.disabled = false;
+      adminMeetAuthorizationButton.disabled = false;
+      adminSyncMeetRecordingsButton.disabled = false;
+      adminRunAutoEndCheckButton.disabled = false;
+      adminClearBookingDataButton.disabled = false;
+      diagnosticsButton.disabled = false;
+      adminLogoutButton.disabled = false;
+      adminLoginButton.disabled = true;
+    } else {
+      adminState.textContent = 'ยังไม่ได้เข้าสู่ระบบ';
+      adminState.className = 'pill';
+      adminLockedMessage.hidden = false;
+      adminOnlyPanels.forEach((panel) => { panel.hidden = true; });
+      adminDashboardButton.disabled = true;
+      adminBookingsButton.disabled = true;
+      adminRoomsButton.disabled = true;
+      adminAuditButton.disabled = true;
+      adminFeatureSettingsSaveButton.disabled = true;
+      recordingsFolderSaveButton.disabled = true;
+      departmentAddButton.disabled = true;
+      adminMeetAuthorizationButton.disabled = true;
+      adminSyncMeetRecordingsButton.disabled = true;
+      adminRunAutoEndCheckButton.disabled = true;
+      adminClearBookingDataButton.disabled = true;
+      diagnosticsButton.disabled = true;
+      adminLogoutButton.disabled = true;
+      adminLoginButton.disabled = false;
+      state.adminBookings = [];
+      applyBookings([]);
+      if (state.currentTab === 'list' || state.currentTab === 'calendar') switchTab('booking');
+    }
+    bookingLayout.classList.toggle('public-layout', !state.adminSessionToken);
+    updateMemberViews();
   }
 
-  function switchTab(tabName) {
-    state.currentTab = tabName;
-    document.querySelectorAll('.tab-button').forEach((button) => {
-      button.classList.toggle('active', button.dataset.tab === tabName);
-    });
-    document.querySelectorAll('.tab-view').forEach((view) => {
-      view.classList.toggle('active', view.id === `tab-${tabName}`);
-    });
-    if (tabName === 'list') renderList();
-    if (tabName === 'calendar') renderCalendar();
+  /* ---------- Staff sign-in with a mobile number ---------- */
+
+  function memberDisplayName(member) {
+    return member.nickName ? `${member.fullName} (${member.nickName})` : member.fullName;
   }
 
-  async function loadAdminDashboard() {
-    showLoading('กำลังโหลด Dashboard ผู้ดูแล...');
+  // Booking needs a signed-in staff member (or an admin booking on someone's behalf);
+  // "รายการจอง" always needs the staff member themself.
+  function updateMemberViews() {
+    const onBooking = state.currentTab === 'booking';
+    const onMine = state.currentTab === 'mine';
+    const needsSignIn = (onBooking && !state.member && !state.adminSessionToken) || (onMine && !state.member);
+    memberGate.hidden = !needsSignIn;
+    bookingLayout.hidden = onBooking && needsSignIn;
+    myBookingsPanel.hidden = !state.member;
+    memberBar.hidden = !(state.member && (onBooking || onMine));
+    if (state.member) {
+      memberBarName.textContent = memberDisplayName(state.member);
+      memberBarPhone.textContent = state.member.phone;
+    }
+    applyRequesterFields();
+  }
+
+  function applyRequesterFields() {
+    const nameInput = form.elements.requesterName;
+    const emailInput = form.elements.requesterEmail;
+    if (state.member) {
+      nameInput.value = memberDisplayName(state.member);
+      nameInput.readOnly = true;
+      if (!emailInput.value) emailInput.value = state.member.email || '';
+    } else if (nameInput.readOnly) {
+      nameInput.readOnly = false;
+      nameInput.value = '';
+      emailInput.value = '';
+      departmentSelect.value = '';
+    }
+    applyDepartmentDefault();
+  }
+
+  // The booking's department starts as the one this staff member last booked for, else the department
+  // on file for their phone number (asset system or registration). They can always pick another.
+  function applyDepartmentDefault() {
+    if (departmentSelect.value || !state.member) return;
+    const preferred = [state.member.lastDepartment, state.member.department]
+      .map((name) => String(name || '').trim().toLowerCase())
+      .filter((name) => name);
+    const match = preferred.map((name) => state.departments.find((item) => item.name.toLowerCase() === name)).find((item) => item);
+    if (match) departmentSelect.value = match.name;
+  }
+
+  // Remember the department just booked for, on this page and in the remembered sign-in.
+  function rememberMemberDepartment(department) {
+    if (!state.member || !department) return;
+    state.member.lastDepartment = department;
     try {
-      const dashboard = await callApi('adminDashboard', { sessionToken: state.adminSessionToken });
-      adminTotalBookings.textContent = dashboard.totalBookings || 0;
-      adminOnlineBookings.textContent = dashboard.onlineBookings || 0;
-      adminOnsiteBookings.textContent = dashboard.onsiteBookings || 0;
-      adminOffsiteBookings.textContent = dashboard.offsiteBookings || 0;
-      adminCancelledBookings.textContent = dashboard.cancelledBookings || 0;
-      adminActiveRooms.textContent = dashboard.activeRooms || 0;
-      adminRecentBookings.innerHTML = dashboard.recentBookings && dashboard.recentBookings.length
-        ? dashboard.recentBookings.map(bookingCardHtml).join('')
-        : '<div class="empty">ยังไม่มีข้อมูล Dashboard</div>';
-      showToast('โหลด Dashboard แล้ว', 'success');
+      const saved = JSON.parse(localStorage.getItem('member_session') || 'null');
+      if (saved && saved.member && saved.member.id === state.member.id) {
+        saved.member.lastDepartment = department;
+        localStorage.setItem('member_session', JSON.stringify(saved));
+      }
+    } catch (e) {}
+  }
+
+  function departmentOptions() {
+    return state.departments.map((item) => `<option value="${escapeHtml(item.name)}">${escapeHtml(item.label)}</option>`).join('');
+  }
+
+  // The booking form, the list filter and the calendar filter all choose from the same departments.
+  function renderDepartmentOptions() {
+    const selected = departmentSelect.value;
+    departmentSelect.innerHTML = '<option value="">— เลือกฝ่าย —</option>' + departmentOptions();
+    if (state.departments.some((item) => item.name === selected)) departmentSelect.value = selected;
+    applyDepartmentDefault();
+    [filterDepartment, calendarFilterDepartment].forEach((select) => {
+      const current = select.value;
+      select.innerHTML = '<option value="">ทั้งหมด</option>' + departmentOptions() + `<option value="${NO_DEPARTMENT}">ไม่ระบุฝ่าย</option>`;
+      if (Array.from(select.options).some((option) => option.value === current)) select.value = current;
+    });
+  }
+
+  const NO_DEPARTMENT = '__none__';
+
+  function departmentLabel(name) {
+    const match = state.departments.find((item) => item.name === name);
+    if (match) return match.label;
+    if (!name) return 'ไม่ระบุฝ่าย';
+    return name.indexOf('ฝ่าย') === 0 ? name : `ฝ่าย${/^[A-Za-z0-9]/.test(name) ? ' ' : ''}${name}`;
+  }
+
+  function showMemberLoginStep() {
+    memberLoginStep.hidden = false;
+    memberRegisterStep.hidden = true;
+    state.registerPhone = '';
+  }
+
+  function showMemberRegisterStep(result) {
+    state.registerPhone = result.phone;
+    memberRegisterPhone.textContent = result.phone;
+    memberDepartmentOptions.innerHTML = (result.departments || []).map((department) => `<option value="${escapeHtml(department)}"></option>`).join('');
+    memberLoginStep.hidden = true;
+    memberRegisterStep.hidden = false;
+    memberFullName.focus();
+  }
+
+  function setMember(session, remember) {
+    state.memberToken = session.token;
+    state.member = session.member;
+    try {
+      if (remember) localStorage.setItem('member_session', JSON.stringify({ token: session.token, member: session.member }));
+      else localStorage.removeItem('member_session');
+    } catch (e) {}
+    showMemberLoginStep();
+    memberPhoneInput.value = '';
+    updateMemberViews();
+    if (state.currentTab === 'mine') loadMyBookings();
+  }
+
+  function clearMember() {
+    state.member = null;
+    state.memberToken = '';
+    state.myBookings = [];
+    myUpcomingList.innerHTML = '';
+    myHistoryList.innerHTML = '';
+    try { localStorage.removeItem('member_session'); } catch (e) {}
+    showMemberLoginStep();
+    updateMemberViews();
+  }
+
+  async function memberLogin() {
+    memberLoginButton.disabled = true;
+    showLoading('กำลังตรวจสอบเบอร์มือถือ...');
+    try {
+      const remember = memberRememberToggle.checked;
+      const result = await callApi('memberLogin', { phone: memberPhoneInput.value, remember });
+      if (result.status === 'register') {
+        showMemberRegisterStep(result);
+      } else {
+        setMember(result, remember);
+        showToast(`ยินดีต้อนรับ ${memberDisplayName(result.member)}`, 'success');
+      }
     } catch (error) {
-      showResult({ eyebrow: 'Admin Dashboard', title: 'โหลด Dashboard ไม่สำเร็จ', message: error.message });
+      showResult({ eyebrow: 'Sign in', title: 'เข้าสู่ระบบไม่สำเร็จ', message: error.message });
+    } finally {
+      hideLoading();
+      memberLoginButton.disabled = false;
+    }
+  }
+
+  async function memberRegister() {
+    memberRegisterButton.disabled = true;
+    showLoading('กำลังลงทะเบียน...');
+    try {
+      const remember = memberRememberToggle.checked;
+      const result = await callApi('memberRegister', {
+        phone: state.registerPhone,
+        fullName: memberFullName.value,
+        nickName: memberNickName.value,
+        department: memberDepartment.value,
+        email: memberEmail.value,
+        remember
+      });
+      setMember(result, remember);
+      [memberFullName, memberNickName, memberDepartment, memberEmail].forEach((input) => { input.value = ''; });
+      showToast('ลงทะเบียนเรียบร้อย เข้าสู่ระบบแล้ว', 'success');
+    } catch (error) {
+      showResult({ eyebrow: 'Register', title: 'ลงทะเบียนไม่สำเร็จ', message: error.message });
+    } finally {
+      hideLoading();
+      memberRegisterButton.disabled = false;
+    }
+  }
+
+  async function memberLogout() {
+    const token = state.memberToken;
+    clearMember();
+    showToast('ออกจากระบบแล้ว', 'success');
+    try { await callApi('memberLogout', { memberToken: token }); } catch (e) {}
+  }
+
+  async function restoreMemberSession() {
+    let saved = null;
+    try { saved = JSON.parse(localStorage.getItem('member_session') || 'null'); } catch (e) {}
+    if (!saved || !saved.token) return;
+    try {
+      const member = await callApi('memberVerify', { memberToken: saved.token });
+      setMember({ token: saved.token, member }, true);
+    } catch (error) {
+      clearMember();
+    }
+  }
+
+  function myBookingCard(booking) {
+    const cancelled = booking.status === 'CANCELLED';
+    const attendees = parseAttendees(booking.attendeeEmails);
+    const recordingIds = String(booking.recordingFileId || '').split(',').map((id) => id.trim()).filter((id) => /^[A-Za-z0-9_-]+$/.test(id));
+    const statusBadge = cancelled ? '<span class="badge cancelled">ยกเลิกแล้ว</span>' : '<span class="badge confirmed">ยืนยันแล้ว</span>';
+    return `
+      <article class="booking-item my-booking-item${cancelled ? ' is-cancelled' : ''}">
+        <div class="booking-top">
+          <span class="booking-title">${escapeHtml(booking.title)}</span>
+          <span><span class="badge ${escapeHtml(String(booking.meetingType || 'ONSITE').toLowerCase())}">${escapeHtml(meetingTypeLabel(booking.meetingType))}</span> ${statusBadge}</span>
+        </div>
+        <div class="meta">
+          <span>${formatDateTime(booking.startTime)} - ${formatDateTime(booking.endTime)}</span>
+          <span>${escapeHtml(booking.roomName || booking.roomId)}</span>
+          <span>${escapeHtml(departmentLabel(booking.department))}</span>
+          ${attendees.length ? `<span>ผู้ร่วมจัด ${attendees.length} คน: ${escapeHtml(attendees.join(', '))}</span>` : ''}
+          ${booking.notes ? `<span>หมายเหตุ: ${escapeHtml(booking.notes)}</span>` : ''}
+          ${booking.meetUrl && !cancelled ? `<a href="${safeUrl(booking.meetUrl)}" target="_blank" rel="noopener">เข้า Google Meet</a>` : ''}
+          ${recordingIds.map((id, index) => `<a href="https://drive.google.com/file/d/${id}/view" target="_blank" rel="noopener">ไฟล์บันทึก${recordingIds.length > 1 ? ` ${index + 1}` : ''}</a>`).join('')}
+          ${booking.gpsUrl ? `<a href="${safeUrl(booking.gpsUrl)}" target="_blank" rel="noopener">เปิด GPS / Google Maps</a>` : ''}
+        </div>
+        ${booking.canEditAttendees || booking.canCancel ? `
+          <div class="card-actions">
+            ${booking.canEditAttendees ? `<button type="button" class="secondary my-edit-attendees" data-booking-id="${escapeHtml(booking.id)}">ผู้ร่วมจัด (${attendees.length})</button>` : ''}
+            ${booking.canCancel ? `<button type="button" class="danger-button my-cancel-booking" data-booking-id="${escapeHtml(booking.id)}">ยกเลิกการจอง</button>` : ''}
+          </div>` : ''}
+      </article>
+    `;
+  }
+
+  function renderMyBookings(data) {
+    state.myBookings = (data.upcoming || []).concat(data.history || []);
+    myUpcomingList.innerHTML = (data.upcoming || []).length
+      ? data.upcoming.map(myBookingCard).join('')
+      : '<div class="empty">ยังไม่มีรายการที่กำลังจะถึง กดแท็บ "จองห้อง" เพื่อจองได้เลย</div>';
+    myHistoryList.innerHTML = (data.history || []).length
+      ? data.history.map(myBookingCard).join('')
+      : '<div class="empty">ยังไม่มีประวัติการจอง</div>';
+  }
+
+  async function loadMyBookings() {
+    if (!state.memberToken) return;
+    try {
+      renderMyBookings(await callApi('memberBookings', { memberToken: state.memberToken }));
+    } catch (error) {
+      if (/เข้าสู่ระบบ/.test(error.message)) clearMember();
+      showResult({ eyebrow: 'My Bookings', title: 'โหลดรายการจองไม่สำเร็จ', message: error.message });
+    }
+  }
+
+  async function cancelMyBooking(bookingId) {
+    const booking = state.myBookings.find((item) => item.id === bookingId);
+    if (!booking || !window.confirm(`ยืนยันยกเลิกการจอง "${booking.title}" ${formatDateTime(booking.startTime)}?`)) return;
+    showLoading('กำลังยกเลิกการจอง...');
+    try {
+      await callApi('memberCancelBooking', { memberToken: state.memberToken, bookingId });
+      await loadMyBookings();
+      showToast('ยกเลิกการจองแล้ว', 'success');
+    } catch (error) {
+      showResult({ eyebrow: 'My Bookings', title: 'ยกเลิกไม่สำเร็จ', message: error.message });
     } finally {
       hideLoading();
     }
   }
 
-  function statusLabel(status) {
-    if (status === 'CANCELLED') return 'ยกเลิกแล้ว';
-    if (status === 'CONFIRMED') return 'ยืนยันแล้ว';
-    return status || '-';
+  function switchTab(tabId) {
+    state.currentTab = tabId;
+    document.querySelectorAll('.tab-button').forEach((button) => {
+      button.classList.toggle('active', button.dataset.tab === tabId);
+    });
+    document.querySelectorAll('.tab-view').forEach((view) => {
+      view.classList.toggle('active', view.id === `tab-${tabId}`);
+    });
+    updateMemberViews();
+    if (tabId === 'mine' && state.member) loadMyBookings();
   }
 
-  function renderAdminBookings(items) {
-    if (!items.length) {
-      adminBookingTableBody.innerHTML = '<tr><td colspan="6">ยังไม่มีรายการจอง</td></tr>';
-      return;
+  function renderDepartmentSummary(rows) {
+    adminDepartmentSummary.innerHTML = rows.length
+      ? rows.map((row) => `
+        <div class="department-summary-item">
+          <strong>${escapeHtml(row.label)}</strong>
+          <span>${Number(row.total)} รายการ${row.online ? ` (ออนไลน์ ${Number(row.online)})` : ''}</span>
+        </div>
+      `).join('')
+      : '<div class="empty">ยังไม่มีรายการจอง</div>';
+  }
+
+  function renderDepartmentAdmin(summary) {
+    assetDepartmentList.textContent = summary.assetDepartments.length
+      ? `จากระบบทรัพย์สิน: ${summary.assetDepartments.map(departmentLabel).join(', ')}`
+      : 'อ่านรายชื่อฝ่ายจากระบบทรัพย์สินไม่ได้ในขณะนี้';
+    extraDepartmentList.innerHTML = summary.extras.map((name) => `
+      <span class="attendee-chip">
+        <span>${escapeHtml(departmentLabel(name))}</span>
+        <button type="button" class="attendee-remove department-remove" data-department="${escapeHtml(name)}" aria-label="ลบ${escapeHtml(departmentLabel(name))}">×</button>
+      </span>
+    `).join('');
+    state.departments = summary.departments;
+    renderDepartmentOptions();
+  }
+
+  function setDepartmentState(message, stateClass) {
+    departmentState.textContent = message;
+    departmentState.className = `feature-settings-state ${stateClass}`;
+  }
+
+  // Runs only as part of loading the admin workspace, i.e. after a successful admin sign-in.
+  async function loadAdminDepartments() {
+    try {
+      renderDepartmentAdmin(await callApi('adminDepartments', { sessionToken: state.adminSessionToken }));
+    } catch (error) {
+      setDepartmentState(`โหลดรายชื่อฝ่ายไม่สำเร็จ: ${error.message}`, 'is-error');
     }
-    adminBookingTableBody.innerHTML = items.map((item) => {
-      const disabled = item.status === 'CANCELLED' ? 'disabled' : '';
-      const meetStatus = String(item.meetConfigStatus || '').toUpperCase();
-      const meetConfigured = meetStatus === 'CONFIGURED';
-      const meetFeatureDisabled = meetStatus === 'DISABLED';
-      let meetAction = '';
-      if (item.meetingType === 'ONLINE' && item.meetUrl) {
-        if (meetConfigured) {
-          meetAction = '<span class="badge">Meet พร้อม</span>';
-        } else if (meetFeatureDisabled) {
-          meetAction = '<span class="badge muted">ฟีเจอร์ Meet ปิดอยู่</span>';
-        } else {
-          meetAction = `<button type="button" class="admin-configure-meet" data-booking-id="${escapeHtml(item.id)}" ${disabled}>ลองตั้งค่า Meet อีกครั้ง</button>`;
-        }
+  }
+
+  async function changeDepartments(action, name, doneMessage) {
+    departmentAddButton.disabled = true;
+    try {
+      renderDepartmentAdmin(await callApi(action, { sessionToken: state.adminSessionToken, name: name }));
+      setDepartmentState(doneMessage, 'is-saved');
+      await loadAdminAuditLogs();
+      return true;
+    } catch (error) {
+      setDepartmentState(error.message, 'is-error');
+      return false;
+    } finally {
+      departmentAddButton.disabled = !state.adminSessionToken;
+    }
+  }
+
+  async function loadAdminDashboard() {
+    if (!state.adminSessionToken) return;
+    adminDashboardButton.disabled = true;
+    try {
+      const data = await callApi('adminDashboard', { sessionToken: state.adminSessionToken });
+      const summary = data.summary || data;
+      adminTotalBookings.textContent = summary.totalBookings || 0;
+      adminOnlineBookings.textContent = summary.onlineBookings || 0;
+      adminOnsiteBookings.textContent = summary.onsiteBookings || 0;
+      adminOffsiteBookings.textContent = summary.offsiteBookings || 0;
+      adminCancelledBookings.textContent = summary.cancelledBookings || 0;
+      adminActiveRooms.textContent = summary.activeRooms || 0;
+
+      const items = data.recentBookings || [];
+      if (!items.length) {
+        adminRecentBookings.innerHTML = '<div class="empty">ยังไม่มีรายการจอง</div>';
+      } else {
+        adminRecentBookings.innerHTML = items.map((booking) => `
+          <article class="booking-item">
+            <div class="booking-top">
+              <span class="booking-title">${escapeHtml(booking.title)}</span>
+              <span class="badge ${String(booking.status).toLowerCase()}">${escapeHtml(booking.status)}</span>
+            </div>
+            <div class="meta">
+              <span>${formatDateTime(booking.startTime)} - ${formatDateTime(booking.endTime)}</span>
+              <span>${escapeHtml(booking.roomName || booking.roomId)} · ${escapeHtml(departmentLabel(booking.department))}</span>
+              <span>ผู้จอง: ${escapeHtml(booking.requesterName)}</span>
+            </div>
+          </article>
+        `).join('');
       }
-      return `
-        <tr>
-          <td>${formatDateTime(item.startTime)}<br><span class="muted">${formatDateTime(item.endTime)}</span></td>
-          <td>${escapeHtml(item.title)}</td>
-          <td>${escapeHtml(item.roomName)}<br><span class="muted">${meetingTypeLabel(item.meetingType)}</span></td>
-          <td>${escapeHtml(item.requesterName || item.requesterEmail || '-')}</td>
-          <td><span class="badge ${item.status === 'CANCELLED' ? 'danger' : ''}">${statusLabel(item.status)}</span></td>
-          <td><div class="table-actions">${meetAction}<button type="button" class="danger-button admin-cancel-booking" data-booking-id="${escapeHtml(item.id)}" ${disabled}>ยกเลิก</button></div></td>
-        </tr>
-      `;
-    }).join('');
+      renderDepartmentSummary(data.byDepartment || []);
+    } catch (error) {
+      showResult({ eyebrow: 'Dashboard', title: 'โหลด Dashboard ไม่สำเร็จ', message: error.message });
+    } finally {
+      adminDashboardButton.disabled = !state.adminSessionToken;
+    }
   }
 
   async function loadAdminBookings() {
+    if (!state.adminSessionToken) return;
     adminBookingsButton.disabled = true;
     try {
       const items = await callApi('adminBookings', { sessionToken: state.adminSessionToken });
-      renderAdminBookings(items || []);
+      state.adminBookings = items || [];
+      if (!state.adminBookings.length) {
+        adminBookingTableBody.innerHTML = '<tr><td colspan="6">ไม่มีรายการจอง</td></tr>';
+        return;
+      }
+      adminBookingTableBody.innerHTML = state.adminBookings.map((booking) => {
+        const isCancelled = booking.status === 'CANCELLED';
+        const isOnline = booking.meetingType === 'ONLINE';
+        const attendees = parseAttendees(booking.attendeeEmails);
+        const meetStatus = String(booking.meetConfigStatus || '').toUpperCase();
+        const needsMeetRetry = isOnline && !isCancelled && booking.meetUrl && meetStatus !== 'CONFIGURED' && meetStatus !== 'DISABLED';
+        const canEditAttendees = isOnline && !isCancelled && booking.calendarEventId && new Date(booking.endTime) > new Date();
+        // Admins always see the recordings; requesters see them in their own list only when shared with co-hosts.
+        const recordingIds = String(booking.recordingFileId || '').split(',').map((id) => id.trim()).filter((id) => /^[A-Za-z0-9_-]+$/.test(id));
+        const recordingLinks = recordingIds.map((id, index) => `<a href="https://drive.google.com/file/d/${id}/view" target="_blank" rel="noopener">ไฟล์บันทึก${recordingIds.length > 1 ? ` ${index + 1}` : ''}</a>`).join(' · ');
+        return `
+          <tr>
+            <td>${formatDateTime(booking.startTime)}<br><small class="muted">ถึง ${formatDateTime(booking.endTime)}</small></td>
+            <td><strong>${escapeHtml(booking.title)}</strong>${booking.meetUrl ? `<br><a href="${safeUrl(booking.meetUrl)}" target="_blank" rel="noopener">เปิด Google Meet</a>` : ''}${recordingLinks ? `<br><small class="recording-links">${recordingLinks}</small>` : ''}${attendees.length ? `<small class="muted attendee-summary">ผู้ร่วมจัด ${attendees.length} คน: ${escapeHtml(attendees.join(', '))}</small>` : ''}</td>
+            <td>${escapeHtml(booking.roomName || booking.roomId)}<br><span class="badge ${escapeHtml(String(booking.meetingType || 'ONSITE').toLowerCase())}">${escapeHtml(meetingTypeLabel(booking.meetingType))}</span><br><small class="muted">${escapeHtml(departmentLabel(booking.department))}</small></td>
+            <td>${escapeHtml(booking.requesterName)}${booking.requesterPhone ? `<br><small class="muted">${escapeHtml(booking.requesterPhone)}</small>` : ''}${booking.requesterEmail ? `<br><small class="muted">${escapeHtml(booking.requesterEmail)}</small>` : ''}</td>
+            <td><span class="badge ${isCancelled ? 'cancelled' : 'confirmed'}">${isCancelled ? 'ยกเลิกแล้ว' : 'ปกติ'}</span></td>
+            <td>
+              <div class="table-actions">
+                ${canEditAttendees ? `<button type="button" class="secondary admin-edit-attendees" data-booking-id="${escapeHtml(booking.id)}">ผู้ร่วมจัด (${attendees.length})</button>` : ''}
+                ${needsMeetRetry ? `<button type="button" class="secondary admin-configure-meet" data-booking-id="${escapeHtml(booking.id)}">ลองตั้งค่า Meet อีกครั้ง</button>` : ''}
+                ${!isCancelled ? `<button type="button" class="danger-button admin-cancel-booking" data-booking-id="${escapeHtml(booking.id)}">ยกเลิกจอง</button>` : '<span class="muted">-</span>'}
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
     } catch (error) {
-      showResult({ eyebrow: 'Admin Bookings', title: 'โหลดรายการจองไม่สำเร็จ', message: error.message });
+      showResult({ eyebrow: 'Bookings', title: 'โหลดรายการจองไม่สำเร็จ', message: error.message });
     } finally {
       adminBookingsButton.disabled = !state.adminSessionToken;
     }
   }
 
-  function renderAdminRooms(items) {
-    adminRoomsGrid.innerHTML = items.length ? items.map((room) => {
-      const active = String(room.active) !== 'false';
-      return `
-        <article class="admin-resource-card">
-          <div>
-            <h3>${escapeHtml(room.name)}</h3>
-            <p>${escapeHtml(room.id)} · ${meetingTypeLabel(room.type)} · ${escapeHtml(room.location || '-')}</p>
-            <small>${room.capacity || 0} ที่นั่ง · ${escapeHtml(room.notes || '')}</small>
-          </div>
-          <button type="button" class="${active ? 'danger-button' : ''} admin-toggle-room" data-room-id="${escapeHtml(room.id)}" data-active="${active ? 'false' : 'true'}">
-            ${active ? 'ปิดใช้งาน' : 'เปิดใช้งาน'}
-          </button>
-        </article>
-      `;
-    }).join('') : '<div class="empty">ยังไม่มีทรัพยากร</div>';
-  }
-
   async function loadAdminRooms() {
+    if (!state.adminSessionToken) return;
     adminRoomsButton.disabled = true;
     try {
       const rooms = await callApi('adminRooms', { sessionToken: state.adminSessionToken });
-      renderAdminRooms(rooms || []);
+      if (!rooms.length) {
+        adminRoomsGrid.innerHTML = '<div class="empty">ไม่มีทรัพยากรในระบบ</div>';
+        return;
+      }
+      adminRoomsGrid.innerHTML = rooms.map((room) => {
+        const active = String(room.active) !== 'false';
+        return `
+          <article class="resource-card">
+            <div class="booking-top">
+              <strong>${escapeHtml(room.name)}</strong>
+              <span class="badge ${active ? 'onsite' : 'cancelled'}">${active ? 'เปิดใช้งาน' : 'ปิดใช้งาน'}</span>
+            </div>
+            <div class="meta">
+              <span><strong>ประเภท:</strong> ${escapeHtml(meetingTypeLabel(room.type))}</span>
+              <span><strong>ความจุ:</strong> ${room.capacity} คน</span>
+              <span><strong>สถานที่:</strong> ${escapeHtml(room.location)}</span>
+              ${room.notes ? `<span><strong>หมายเหตุ:</strong> ${escapeHtml(room.notes)}</span>` : ''}
+            </div>
+            <div class="card-actions">
+              <button type="button" class="${active ? 'danger-button' : ''} admin-toggle-room" data-room-id="${escapeHtml(room.id)}" data-active="${!active}">
+                ${active ? 'ปิดไม่ให้จอง' : 'เปิดให้จอง'}
+              </button>
+            </div>
+          </article>
+        `;
+      }).join('');
     } catch (error) {
-      showResult({ eyebrow: 'Admin Resources', title: 'โหลดทรัพยากรไม่สำเร็จ', message: error.message });
+      showResult({ eyebrow: 'Resources', title: 'โหลดทรัพยากรไม่สำเร็จ', message: error.message });
     } finally {
       adminRoomsButton.disabled = !state.adminSessionToken;
     }
@@ -702,14 +1349,23 @@
 
   const auditActionLabels = {
     ADMIN_LOGIN: 'เข้าสู่ระบบผู้ดูแล',
+    MEMBER_LOGIN: 'ผู้ใช้เข้าสู่ระบบด้วยเบอร์มือถือ',
+    MEMBER_REGISTERED: 'ผู้ใช้ลงทะเบียนครั้งแรก',
     ADMIN_CREATED: 'สร้างบัญชีผู้ดูแล',
     BOOKING_CREATED: 'สร้างรายการจอง',
     BOOKING_CANCELLED: 'ยกเลิกรายการจอง',
+    BOOKING_ATTENDEES_UPDATED: 'แก้ไขรายชื่อผู้ร่วมจัด',
     ROOM_STATUS_CHANGED: 'เปลี่ยนสถานะทรัพยากร',
     FEATURE_SETTINGS_UPDATED: 'แก้ไขการตั้งค่าฟีเจอร์',
     MEET_ACCESS_CONFIGURED: 'ตั้งค่าสิทธิ์ Google Meet',
     MEET_RECORDINGS_SYNCED: 'ตรวจสอบไฟล์บันทึก Meet',
     MEET_RECORDING_ORGANIZED: 'จัดเก็บไฟล์บันทึก Meet',
+    MEET_AUTO_ENDED: 'จบห้อง Meet อัตโนมัติ',
+    MEET_AUTO_END_CHECK_RUN: 'ตรวจสถานะ Auto End',
+    RECORDINGS_FOLDER_CHANGED: 'เปลี่ยนโฟลเดอร์เก็บไฟล์บันทึก',
+    DEPARTMENT_ADDED: 'เพิ่มฝ่าย',
+    DEPARTMENT_REMOVED: 'ลบฝ่าย',
+    SYSTEM_ACCOUNT_ACTIVATED: 'เปิดใช้บัญชีระบบ (ผู้จัดการประชุม)',
     BOOKING_DATA_CLEARED: 'ล้างข้อมูลการจองสำหรับทดสอบ',
     SCHEMA_REPAIR: 'ตรวจและซ่อมโครงสร้างชีต',
     API_ERROR: 'ระบบพบข้อผิดพลาด'
@@ -717,10 +1373,13 @@
 
   const auditEntityLabels = {
     admin: 'บัญชีผู้ดูแล',
+    member: 'ผู้ใช้ (เบอร์มือถือ)',
     booking: 'รายการจอง',
     room: 'ห้องหรือทรัพยากร',
     settings: 'การตั้งค่าระบบ',
     recording: 'ไฟล์บันทึก Google Meet',
+    meet_auto_end: 'ระบบจบห้อง Meet',
+    system: 'บัญชีระบบ',
     maintenance: 'งานบำรุงรักษาระบบ',
     sheet: 'ชีตข้อมูล',
     api: 'การทำงานของระบบ'
@@ -755,6 +1414,16 @@
   function auditToggleLabel(value) {
     const normalized = String(value).trim().toLowerCase();
     return value === true || normalized === 'true' || normalized === 'on' || normalized === '1' ? 'เปิด' : 'ปิด';
+  }
+
+  function auditMeetRoomSummary(meet) {
+    if (!meet) return '';
+    if (meet.source === 'CALENDAR') return `ห้องจาก Google Calendar (ไม่มีผู้ร่วมจัด)${meet.fallbackReason ? `: ${meet.fallbackReason}` : ''}`;
+    const members = meet.members || {};
+    if (members.error) return `สร้างห้องแล้ว แต่ตั้งผู้ร่วมจัดไม่สำเร็จ: ${members.error}`;
+    const others = (members.members || []).length;
+    const failed = (members.failed || []).length;
+    return `ผู้ร่วมจัด ${(members.coHosts || []).length} คน${others ? `, เข้าห้องได้ทันที ${others} คน` : ''}${failed ? `, ไม่สำเร็จ ${failed} คน` : ''}`;
   }
 
   function auditMeetStatusLabel(value) {
@@ -806,21 +1475,54 @@
     switch (item.action) {
       case 'ADMIN_LOGIN':
         return [auditLine('ผลลัพธ์', 'เข้าสู่ระบบผู้ดูแลสำเร็จ')];
+      case 'MEMBER_LOGIN':
+      case 'MEMBER_REGISTERED':
+        return [auditLine('ข้อมูลผู้ใช้จาก', details.source === 'asset' ? 'รายชื่อพนักงานในระบบทรัพย์สิน' : 'ลงทะเบียนเองในระบบจองห้อง')];
       case 'ADMIN_CREATED':
         return [auditLine('สิทธิ์ที่กำหนด', details.role === 'SUPER_ADMIN' ? 'ผู้ดูแลระบบสูงสุด' : details.role)];
       case 'BOOKING_CREATED':
         return [
           auditOptionalLine('หัวข้อประชุม', details.title),
           auditOptionalLine('ชื่อผู้จอง', details.requesterName),
+          auditOptionalLine('ฝ่าย', details.department ? departmentLabel(details.department) : ''),
           auditOptionalLine('รูปแบบประชุม', details.meetingType ? auditMeetingTypeLabel(details.meetingType) : ''),
           auditLine('ห้องหรือทรัพยากร', details.roomName || details.roomId),
           auditOptionalLine('ช่วงเวลา', details.startTime && details.endTime ? `${formatDateTime(details.startTime)} ถึง ${formatDateTime(details.endTime)}` : ''),
+          auditOptionalLine('ผู้ร่วมจัดที่กรอก', details.attendeeCount ? `${Number(details.attendeeCount)} คน` : ''),
+          auditOptionalLine('ห้อง Google Meet', auditMeetRoomSummary(details.meet)),
           auditLine('การแจ้งอีเมล', auditEmailResult(details.emailNotification))
         ].filter(Boolean);
+      case 'BOOKING_ATTENDEES_UPDATED':
+        return [
+          auditOptionalLine('หัวข้อประชุม', details.title),
+          auditLine('เพิ่ม', Array.isArray(details.added) && details.added.length ? details.added.join(', ') : 'ไม่มี'),
+          auditLine('ลบ', Array.isArray(details.removed) && details.removed.length ? details.removed.join(', ') : 'ไม่มี'),
+          auditLine('ผู้ร่วมจัดทั้งหมด', `${Number(details.attendeeCount || 0)} คน (ไม่นับผู้จอง)`),
+          auditOptionalLine('ผู้ร่วมจัดใน Meet', details.meetMembers ? (details.meetMembers.ok && details.meetMembers.result ? auditMeetStatusLabel(details.meetMembers.result.status) : `ไม่สำเร็จ: ${details.meetMembers.error || '-'}`) : '')
+        ].filter(Boolean);
+      case 'DEPARTMENT_ADDED':
+      case 'DEPARTMENT_REMOVED':
+        return [
+          auditLine('ฝ่าย', departmentLabel(details.name)),
+          auditLine('ฝ่ายที่ผู้ดูแลเพิ่มไว้ทั้งหมด', Array.isArray(details.extras) && details.extras.length ? details.extras.map(departmentLabel).join(', ') : 'ไม่มี')
+        ];
+      case 'RECORDINGS_FOLDER_CHANGED':
+        return [
+          auditLine('โฟลเดอร์', details.name || details.id),
+          auditOptionalLine('เจ้าของโฟลเดอร์', details.ownerEmail),
+          auditOptionalLine('ลิงก์', details.url)
+        ].filter(Boolean);
+      case 'SYSTEM_ACCOUNT_ACTIVATED':
+        return [
+          auditLine('บัญชีระบบ', item.actor),
+          auditLine('นโยบายห้องประชุม', details.policyApplied ? 'ตั้งค่าใหม่แล้ว' : 'ใช้ค่าที่ตั้งไว้เดิม'),
+          auditLine('ผลตรวจระบบ', details.diagnosticsOk ? 'ผ่านทุกข้อ' : `มีข้อที่ไม่ผ่าน: ${(details.failedChecks || []).join(' | ')}`)
+        ];
       case 'BOOKING_CANCELLED':
         return [
           auditOptionalLine('หัวข้อประชุม', details.title),
           auditOptionalLine('ชื่อผู้จอง', details.requesterName),
+          auditOptionalLine('ฝ่าย', details.department ? departmentLabel(details.department) : ''),
           auditOptionalLine('รูปแบบประชุม', details.meetingType ? auditMeetingTypeLabel(details.meetingType) : ''),
           auditLine('ห้องหรือทรัพยากร', details.roomName || details.roomId),
           auditLine('ช่วงเวลาเดิม', `${formatDateTime(details.startTime)} ถึง ${formatDateTime(details.endTime)}`),
@@ -835,10 +1537,15 @@
       case 'FEATURE_SETTINGS_UPDATED':
         return [
           auditLine('อีเมลแจ้งจอง/ยกเลิก', auditToggleLabel(details.emailNotificationsEnabled)),
-          auditLine('เชิญอีเมลผู้จองเข้า Meet', auditToggleLabel(details.calendarInviteRequesterEnabled)),
+          details.calendarInviteRequesterEnabled === undefined ? null : auditLine('เชิญอีเมลผู้จองเข้า Meet', auditToggleLabel(details.calendarInviteRequesterEnabled)),
           auditLine('ผู้มีลิงก์ Meet เข้าได้ทันที', auditToggleLabel(details.meetOpenAccessEnabled)),
-          auditLine('บันทึก Meet อัตโนมัติ', auditToggleLabel(details.meetAutoRecordingEnabled))
-        ];
+          auditLine('บันทึก Meet อัตโนมัติ', auditToggleLabel(details.meetAutoRecordingEnabled)),
+          details.meetCoHostsEnabled === undefined ? null : auditLine('ผู้จองและอีเมลที่กรอกเป็นผู้ร่วมจัด', auditToggleLabel(details.meetCoHostsEnabled)),
+          details.meetRecordingsAdminOnly === undefined ? null : auditLine('ไฟล์บันทึกเฉพาะผู้ดูแล', auditToggleLabel(details.meetRecordingsAdminOnly)),
+          auditLine('Auto End Meeting', auditToggleLabel(details.meetAutoEndEnabled)),
+          auditLine('เวลาจับ 1 คน (นาที)', details.meetAutoEndMinutes || 10),
+          auditOptionalLine('ผู้ร่วมจัดสูงสุดต่อการจอง', details.maxMeetingAttendees ? `${details.maxMeetingAttendees} อีเมล` : '')
+        ].filter(Boolean);
       case 'MEET_ACCESS_CONFIGURED':
         return [
           auditOptionalLine('หัวข้อประชุม', details.bookingTitle),
@@ -861,8 +1568,24 @@
         return [
           auditOptionalLine('หัวข้อประชุม', details.bookingTitle),
           auditLine('ชื่อไฟล์ใหม่', details.fileName),
-          auditLine('รหัสไฟล์ใน Drive', details.fileId)
+          auditOptionalLine('โฟลเดอร์ฝ่าย', details.folderName),
+          auditLine('รหัสไฟล์ใน Drive', details.fileId),
+          auditOptionalLine('เอาสิทธิ์ดูไฟล์ออก (เหลือเฉพาะผู้ดูแล)', Array.isArray(details.removedAccess) && details.removedAccess.length ? details.removedAccess.join(', ') : '')
         ].filter(Boolean);
+      case 'MEET_AUTO_ENDED':
+        return [
+          auditOptionalLine('หัวข้อประชุม', details.bookingTitle),
+          auditLine('Meet Code', details.meetCode),
+          auditLine('เริ่มจับเวลา (1 คน)', formatDateTime(details.singletonSince)),
+          auditLine('เวลาที่ระบบจบห้อง', formatDateTime(details.autoEndedAt)),
+          auditLine('เหตุผล', details.reason)
+        ].filter(Boolean);
+      case 'MEET_AUTO_END_CHECK_RUN':
+        return [
+          auditLine('การรัน', 'สั่งตรวจสถานะด้วยตนเองในหน้า Admin'),
+          auditLine('จำนวนห้องที่ตรวจ', Number(details.checked || 0)),
+          auditLine('ผลลัพธ์', details.enabled ? 'เปิดเฝ้าระวัง' : 'ฟีเจอร์ปิดอยู่')
+        ];
       case 'BOOKING_DATA_CLEARED':
         return [
           auditLine('รายการจองที่ลบ', `${Number(details.bookings || 0)} รายการ`),
@@ -912,6 +1635,7 @@
   }
 
   async function loadAdminAuditLogs() {
+    if (!state.adminSessionToken) return;
     adminAuditButton.disabled = true;
     try {
       const logs = await callApi('adminAuditLogs', { sessionToken: state.adminSessionToken, limit: 100 });
@@ -925,9 +1649,17 @@
 
   function renderFeatureSettings(settings) {
     emailNotificationsToggle.checked = !!settings.emailNotificationsEnabled;
-    calendarInviteRequesterToggle.checked = !!settings.calendarInviteRequesterEnabled;
     meetOpenAccessToggle.checked = !!settings.meetOpenAccessEnabled;
     meetAutoRecordingToggle.checked = !!settings.meetAutoRecordingEnabled;
+    meetCoHostsToggle.checked = !!settings.meetCoHostsEnabled;
+    meetRecordingsAdminOnlyToggle.checked = !!settings.meetRecordingsAdminOnly;
+    meetAutoEndToggle.checked = !!settings.meetAutoEndEnabled;
+    meetAutoEndMinutesInput.value = settings.meetAutoEndMinutes || 10;
+    if (settings.maxMeetingAttendees) {
+      state.maxAttendees = Number(settings.maxMeetingAttendees);
+      maxMeetingAttendeesInput.value = state.maxAttendees;
+      bookingAttendees.render();
+    }
   }
 
   function setFeatureSettingsState(message, stateClass) {
@@ -936,6 +1668,7 @@
   }
 
   async function loadAdminFeatureSettings() {
+    if (!state.adminSessionToken) return;
     try {
       const settings = await callApi('adminFeatureSettings', { sessionToken: state.adminSessionToken });
       renderFeatureSettings(settings || {});
@@ -946,12 +1679,122 @@
     }
   }
 
+  function renderRecordingsFolder(folder) {
+    if (!folder || !folder.configured) {
+      recordingsFolderState.textContent = 'ยังไม่ได้ตั้งโฟลเดอร์ — ระบบจะสร้างโฟลเดอร์ใหม่ในไดรฟ์ของบัญชีระบบเมื่อมีไฟล์แรก';
+      recordingsFolderState.className = 'feature-settings-state';
+      return;
+    }
+    if (!folder.accessible) {
+      recordingsFolderState.textContent = folder.error || 'เปิดโฟลเดอร์ไม่ได้';
+      recordingsFolderState.className = 'feature-settings-state is-error';
+      return;
+    }
+    recordingsFolderInput.value = folder.url || '';
+    recordingsFolderState.textContent = `ใช้โฟลเดอร์ "${folder.name}"${folder.ownerEmail ? ` ของ ${folder.ownerEmail}` : ''}`;
+    recordingsFolderState.className = 'feature-settings-state is-saved';
+  }
+
+  async function loadAdminRecordingsFolder() {
+    if (!state.adminSessionToken) return;
+    try {
+      renderRecordingsFolder(await callApi('adminRecordingsFolder', { sessionToken: state.adminSessionToken }));
+    } catch (error) {
+      recordingsFolderState.textContent = `อ่านโฟลเดอร์ไม่สำเร็จ: ${error.message}`;
+      recordingsFolderState.className = 'feature-settings-state is-error';
+    }
+  }
+
+  // The account the deployment runs as organizes the meetings, so it must be the Workspace
+  // system account for co-hosts and recording to work.
+  async function loadSystemAccountState() {
+    try {
+      const account = await callApi('health', {});
+      const matches = !account.systemAccount || account.systemAccount === account.runningAs;
+      if (!account.systemAccount) {
+        systemAccountState.textContent = `บัญชีที่รันระบบ: ${account.runningAs} (ยังไม่ได้เปิดใช้บัญชีระบบ)`;
+      } else if (matches) {
+        systemAccountState.textContent = `บัญชีที่รันระบบ: ${account.runningAs} — ตรงกับบัญชีระบบ`;
+      } else {
+        systemAccountState.textContent = `บัญชีที่รันระบบ: ${account.runningAs} — ไม่ตรงกับบัญชีระบบ ${account.systemAccount} ต้อง deploy ด้วยบัญชี ${account.systemAccount}`;
+      }
+      systemAccountState.className = `feature-settings-state ${matches ? 'is-saved' : 'is-error'}`;
+    } catch (error) {
+      systemAccountState.textContent = `ตรวจบัญชีที่รันระบบไม่สำเร็จ: ${error.message}`;
+      systemAccountState.className = 'feature-settings-state is-error';
+    }
+  }
+
+  function renderMeetAutoEndStatus(status) {
+    if (!status) return;
+    adminMeetAutoEndStatusBadge.textContent = status.enabled ? 'เปิดใช้งาน' : 'ปิดอยู่';
+    adminMeetAutoEndStatusBadge.style.color = status.enabled ? '#0f9d58' : '#5f6368';
+    adminMeetAutoEndMonitoredCount.textContent = status.monitoredCount || 0;
+    const singletons = status.singletons || [];
+    adminMeetAutoEndSingletonsCount.textContent = singletons.length;
+
+    if (!singletons.length) {
+      adminMeetAutoEndSingletonsTableBody.innerHTML = '<tr><td colspan="5">ไม่มีห้องที่เหลือผู้เข้าร่วมคนเดียวในขณะนี้</td></tr>';
+      return;
+    }
+
+    adminMeetAutoEndSingletonsTableBody.innerHTML = singletons.map((item) => `
+      <tr>
+        <td><strong>${escapeHtml(item.title || '-')}</strong><br><small class="muted">${escapeHtml(item.roomName || '-')}</small></td>
+        <td><code>${escapeHtml(item.meetCode || '-')}</code></td>
+        <td>${formatDateTime(item.singletonSince)}</td>
+        <td><strong style="color: #d93025;">${item.elapsedMinutes} นาที</strong></td>
+        <td>ครบ ${item.minutesThreshold} นาที (ตรวจทุก ${status.intervalMinutes || 1} นาที)</td>
+      </tr>
+    `).join('');
+  }
+
+  async function loadAdminMeetAutoEndStatus() {
+    if (!state.adminSessionToken) return;
+    adminRunAutoEndCheckButton.disabled = true;
+    try {
+      const status = await callApi('adminMeetAutoEndStatus', { sessionToken: state.adminSessionToken });
+      renderMeetAutoEndStatus(status);
+    } catch (error) {
+      console.error('loadAdminMeetAutoEndStatus error:', error.message);
+    } finally {
+      adminRunAutoEndCheckButton.disabled = !state.adminSessionToken;
+    }
+  }
+
   async function loadAdminWorkspace() {
-    await loadAdminDashboard();
-    await loadAdminBookings();
-    await loadAdminRooms();
-    await loadAdminFeatureSettings();
-    await loadAdminAuditLogs();
+    await Promise.allSettled([
+      loadAdminDashboard(),
+      loadAdminBookings(),
+      loadAdminRooms(),
+      loadAdminFeatureSettings(),
+      loadAdminRecordingsFolder(),
+      loadAdminDepartments(),
+      loadSystemAccountState(),
+      loadAdminMeetAutoEndStatus(),
+      loadAdminAuditLogs()
+    ]);
+  }
+
+  async function restoreAdminSession() {
+    try {
+      const saved = localStorage.getItem('admin_session');
+      if (!saved) return;
+      const parsed = JSON.parse(saved);
+      if (!parsed || !parsed.token) return;
+      const response = await callApi('adminVerifySession', { sessionToken: parsed.token });
+      if (response && response.active) {
+        setAdminLoggedIn({ sessionToken: parsed.token, username: parsed.username || response.username });
+        await loadAdminWorkspace();
+        await refreshBookings();
+        showToast(`เข้าสู่ระบบผู้ดูแลอัตโนมัติ (${parsed.username || response.username})`, 'success');
+      } else {
+        localStorage.removeItem('admin_session');
+      }
+    } catch (error) {
+      console.warn('Auto restore session:', error.message);
+      try { localStorage.removeItem('admin_session'); } catch (e) {}
+    }
   }
 
   async function load() {
@@ -960,8 +1803,15 @@
       setDefaultTimes();
       const bootstrap = await callApi('bootstrap');
       state.rooms = bootstrap.rooms || [];
+      state.maxAttendees = Number((bootstrap.settings || {}).maxMeetingAttendees) || 24;
+      state.ownerEmail = String((bootstrap.settings || {}).ownerEmail || '').toLowerCase();
+      state.departments = (bootstrap.settings || {}).departments || [];
+      renderDepartmentOptions();
+      bookingAttendees.render();
       renderRooms();
-      await refreshBookings();
+      await restoreMemberSession();
+      await restoreAdminSession();
+      updateMemberViews();
       setStatus('พร้อมใช้งาน', 'success');
     } catch (error) {
       setStatus(error.message, 'error');
@@ -977,7 +1827,7 @@
     try {
       data = buildBookingPayload();
     } catch (error) {
-      showResult({ eyebrow: 'ตรวจข้อมูล', title: 'กรุณาตรวจวันที่และเวลา', message: error.message });
+      showResult({ eyebrow: 'ตรวจข้อมูล', title: 'กรุณาตรวจข้อมูลการจอง', message: error.message });
       return;
     }
 
@@ -987,16 +1837,26 @@
     showLoading(data.meetingType === 'ONLINE' ? 'กำลังจองและสร้าง Google Meet...' : 'กำลังบันทึกการจอง...');
 
     try {
-      const booking = await callApi('createBooking', data);
+      const identity = state.member ? { memberToken: state.memberToken } : { sessionToken: state.adminSessionToken };
+      const booking = await callApi('createBooking', Object.assign({}, data, identity));
+      if (state.member) rememberMemberDepartment(booking.department);
       form.reset();
+      bookingAttendees.clear();
       setDefaultTimes();
-      await refreshBookings();
+      renderRooms();
+      updateMemberViews();
+      if (state.member) loadMyBookings();
+      if (state.adminSessionToken) {
+        await refreshBookings();
+        await loadAdminBookings();
+      }
       if (booking.meetUrl) {
+        const invited = (booking.invitedEmails || []).filter((email) => email !== state.ownerEmail);
         setStatus('จองสำเร็จและสร้าง Google Meet แล้ว', 'success');
         showResult({
           eyebrow: 'Booking Confirmed',
           title: 'จองสำเร็จ พร้อม Google Meet',
-          message: `ระบบสร้างรายการจอง ${formatDateTime(booking.startTime)} และบันทึก Meet URL ลง Google Sheet แล้ว`,
+          message: `ระบบสร้างรายการจอง ${formatDateTime(booking.startTime)} และส่งคำเชิญ Google Meet ทางอีเมลแล้ว ${invited.length} อีเมล${invited.length ? `\n${invited.join('\n')}` : ''}`,
           meetUrl: booking.meetUrl
         });
       } else {
@@ -1019,8 +1879,40 @@
 
   resetButton.addEventListener('click', () => {
     form.reset();
+    bookingAttendees.clear();
     setDefaultTimes();
     renderRooms();
+    updateMemberViews();
+  });
+
+  memberLoginButton.addEventListener('click', memberLogin);
+  memberPhoneInput.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      memberLogin();
+    }
+  });
+  memberRegisterButton.addEventListener('click', memberRegister);
+  memberChangePhoneButton.addEventListener('click', () => {
+    showMemberLoginStep();
+    memberPhoneInput.focus();
+  });
+  memberLogoutButton.addEventListener('click', memberLogout);
+  myBookingsRefreshButton.addEventListener('click', async () => {
+    showLoading('กำลังโหลดรายการจองของคุณ...');
+    await loadMyBookings();
+    hideLoading();
+  });
+  [myUpcomingList, myHistoryList].forEach((list) => {
+    list.addEventListener('click', (event) => {
+      const attendeeButton = event.target.closest('.my-edit-attendees');
+      if (attendeeButton) {
+        openAttendeeModal(attendeeButton.dataset.bookingId, 'member');
+        return;
+      }
+      const cancelButton = event.target.closest('.my-cancel-booking');
+      if (cancelButton) cancelMyBooking(cancelButton.dataset.bookingId);
+    });
   });
 
   refreshButton.addEventListener('click', async () => {
@@ -1071,9 +1963,21 @@
         password: adminPassword.value
       });
       setAdminLoggedIn(session);
+      if (adminRememberMeToggle && adminRememberMeToggle.checked) {
+        try {
+          localStorage.setItem('admin_session', JSON.stringify({
+            token: session.sessionToken,
+            username: session.username,
+            role: session.role
+          }));
+        } catch (e) {}
+      } else {
+        try { localStorage.removeItem('admin_session'); } catch (e) {}
+      }
       adminPassword.value = '';
       showToast('เข้าสู่ระบบผู้ดูแลแล้ว', 'success');
       await loadAdminWorkspace();
+      await refreshBookings();
     } catch (error) {
       showResult({ eyebrow: 'Admin Login', title: 'เข้าสู่ระบบไม่สำเร็จ', message: error.message });
     } finally {
@@ -1083,6 +1987,7 @@
   });
 
   adminLogoutButton.addEventListener('click', () => {
+    try { localStorage.removeItem('admin_session'); } catch (e) {}
     setAdminLoggedIn(null);
     adminRecentBookings.innerHTML = '<div class="empty">เข้าสู่ระบบเพื่อดู Dashboard</div>';
     adminBookingTableBody.innerHTML = '';
@@ -1095,6 +2000,38 @@
   adminDashboardButton.addEventListener('click', loadAdminDashboard);
   adminBookingsButton.addEventListener('click', loadAdminBookings);
   adminRoomsButton.addEventListener('click', loadAdminRooms);
+  departmentAddButton.addEventListener('click', async () => {
+    if (!state.adminSessionToken) return;
+    const name = departmentNameInput.value.trim();
+    if (await changeDepartments('adminAddDepartment', name, `เพิ่ม${departmentLabel(name)}แล้ว`)) departmentNameInput.value = '';
+  });
+
+  extraDepartmentList.addEventListener('click', async (event) => {
+    const button = event.target.closest('.department-remove');
+    if (!button || !state.adminSessionToken) return;
+    const name = button.dataset.department;
+    if (!window.confirm(`ลบ${departmentLabel(name)}ออกจากรายการ? (การจองเดิมและโฟลเดอร์ไฟล์บันทึกของฝ่ายนี้ยังอยู่)`)) return;
+    await changeDepartments('adminRemoveDepartment', name, `ลบ${departmentLabel(name)}แล้ว`);
+  });
+
+  recordingsFolderSaveButton.addEventListener('click', async () => {
+    if (!state.adminSessionToken) return;
+    recordingsFolderSaveButton.disabled = true;
+    showLoading('กำลังตรวจโฟลเดอร์...');
+    try {
+      const folder = await callApi('adminSetRecordingsFolder', { sessionToken: state.adminSessionToken, folder: recordingsFolderInput.value });
+      renderRecordingsFolder(folder);
+      await loadAdminAuditLogs();
+      showToast('ตั้งโฟลเดอร์เก็บไฟล์บันทึกแล้ว', 'success');
+    } catch (error) {
+      recordingsFolderState.textContent = `ตั้งโฟลเดอร์ไม่สำเร็จ: ${error.message}`;
+      recordingsFolderState.className = 'feature-settings-state is-error';
+      showResult({ eyebrow: 'Recordings', title: 'ตั้งโฟลเดอร์ไม่สำเร็จ', message: error.message });
+    } finally {
+      hideLoading();
+      recordingsFolderSaveButton.disabled = !state.adminSessionToken;
+    }
+  });
   adminAuditButton.addEventListener('click', loadAdminAuditLogs);
   adminFeatureSettingsSaveButton.addEventListener('click', async () => {
     if (!state.adminSessionToken) return;
@@ -1105,18 +2042,23 @@
       const settings = await callApi('adminUpdateFeatureSettings', {
         sessionToken: state.adminSessionToken,
         emailNotificationsEnabled: emailNotificationsToggle.checked,
-        calendarInviteRequesterEnabled: calendarInviteRequesterToggle.checked,
         meetOpenAccessEnabled: meetOpenAccessToggle.checked,
-        meetAutoRecordingEnabled: meetAutoRecordingToggle.checked
+        meetAutoRecordingEnabled: meetAutoRecordingToggle.checked,
+        meetCoHostsEnabled: meetCoHostsToggle.checked,
+        meetRecordingsAdminOnly: meetRecordingsAdminOnlyToggle.checked,
+        meetAutoEndEnabled: meetAutoEndToggle.checked,
+        meetAutoEndMinutes: Number(meetAutoEndMinutesInput.value) || 10,
+        maxMeetingAttendees: Number(maxMeetingAttendeesInput.value) || 24
       });
       renderFeatureSettings(settings || {});
+      await loadAdminMeetAutoEndStatus();
       await loadAdminAuditLogs();
       setFeatureSettingsState(`บันทึกแล้ว ${formatDateTime(new Date().toISOString())}`, 'is-saved');
       showToast('บันทึกการตั้งค่าแล้ว', 'success');
       showResult({
         eyebrow: 'Feature Settings',
         title: 'บันทึกการตั้งค่าแล้ว',
-        message: `อีเมลแจ้งเตือน: ${settings.emailNotificationsEnabled ? 'เปิด' : 'ปิด'}\nเชิญอีเมลผู้จอง: ${settings.calendarInviteRequesterEnabled ? 'เปิด' : 'ปิด'}\nOpen access ของ Meet: ${settings.meetOpenAccessEnabled ? 'เปิด' : 'ปิด'}\nAuto-record ของ Meet: ${settings.meetAutoRecordingEnabled ? 'เปิด' : 'ปิด'}`
+        message: `อีเมลแจ้งเตือน: ${settings.emailNotificationsEnabled ? 'เปิด' : 'ปิด'}\nOpen access ของ Meet: ${settings.meetOpenAccessEnabled ? 'เปิด' : 'ปิด'}\nAuto-record ของ Meet: ${settings.meetAutoRecordingEnabled ? 'เปิด' : 'ปิด'}\nผู้ร่วมจัด (co-host): ${settings.meetCoHostsEnabled ? 'ผู้จองและผู้เข้าร่วมทุกคน' : 'ปิด'}\nไฟล์บันทึก: ${settings.meetRecordingsAdminOnly ? 'เฉพาะผู้ดูแล' : 'ตามที่ Google แชร์'}\nAuto End Meeting: ${settings.meetAutoEndEnabled ? 'เปิด (' + settings.meetAutoEndMinutes + ' นาที)' : 'ปิด'}\nผู้เข้าร่วมสูงสุดต่อการจอง: ${settings.maxMeetingAttendees} อีเมล`
       });
     } catch (error) {
       setFeatureSettingsState(`บันทึกไม่สำเร็จ: ${error.message}`, 'is-error');
@@ -1126,6 +2068,33 @@
       adminFeatureSettingsSaveButton.disabled = !state.adminSessionToken;
     }
   });
+
+  adminRunAutoEndCheckButton.addEventListener('click', async () => {
+    if (!state.adminSessionToken) return;
+    adminRunAutoEndCheckButton.disabled = true;
+    showLoading('กำลังตรวจสอบสถานะ Auto End Meeting ทั้งหมด...');
+    try {
+      const response = await callApi('adminRunAutoEndCheck', { sessionToken: state.adminSessionToken });
+      renderMeetAutoEndStatus(response.status);
+      await loadAdminAuditLogs();
+      const result = response.result || {};
+      const checked = result.checked || 0;
+      const endedCount = (result.results || []).filter((r) => r.ok && r.result && r.result.action === 'conference_ended').length;
+      showResult({
+        eyebrow: 'Auto End Meeting',
+        title: endedCount > 0 ? `ระบบจบห้องแล้ว ${endedCount} ห้อง` : 'ตรวจสอบสถานะเรียบร้อย',
+        message: result.enabled === false
+          ? 'ฟีเจอร์ Auto End Meeting ปิดอยู่ (ระบบไม่ได้จบห้องใดๆ)'
+          : `ตรวจสอบ ${checked} รายการจองออนไลน์ที่กำลังประชุมอยู่\nห้องที่ถูกจบอัตโนมัติรอบนี้: ${endedCount} ห้อง`
+      });
+    } catch (error) {
+      showResult({ eyebrow: 'Auto End Meeting', title: 'ตรวจสอบสถานะไม่สำเร็จ', message: error.message });
+    } finally {
+      hideLoading();
+      adminRunAutoEndCheckButton.disabled = !state.adminSessionToken;
+    }
+  });
+
   adminMeetAuthorizationButton.addEventListener('click', async () => {
     if (!state.adminSessionToken) return;
     adminMeetAuthorizationButton.disabled = true;
@@ -1144,6 +2113,7 @@
       adminMeetAuthorizationButton.disabled = !state.adminSessionToken;
     }
   });
+
   adminSyncMeetRecordingsButton.addEventListener('click', async () => {
     if (!state.adminSessionToken) return;
     adminSyncMeetRecordingsButton.disabled = true;
@@ -1164,6 +2134,7 @@
       adminSyncMeetRecordingsButton.disabled = !state.adminSessionToken;
     }
   });
+
   adminClearBookingDataButton.addEventListener('click', async () => {
     if (!state.adminSessionToken) return;
     const confirmed = window.confirm('ยืนยันล้างข้อมูลจองทั้งหมด? ระบบจะลบ bookings และ booking_index แต่ไม่ลบ admin, rooms, settings หรือ schema');
@@ -1189,7 +2160,88 @@
     }
   });
 
+  // mode 'admin' edits any booking with the admin session; 'member' edits the member's own booking.
+  function openAttendeeModal(bookingId, mode) {
+    const source = mode === 'member' ? state.myBookings : state.adminBookings;
+    const booking = source.find((item) => item.id === bookingId);
+    if (!booking) return;
+    state.attendeeModalBooking = booking;
+    state.attendeeModalMode = mode === 'member' ? 'member' : 'admin';
+    attendeeModalMeta.textContent = `${booking.title} · ${formatDateTime(booking.startTime)} - ${formatDateTime(booking.endTime)}`;
+    const requesterName = booking.requesterName || (state.member ? memberDisplayName(state.member) : 'ผู้จอง');
+    attendeeModalRequester.textContent = booking.requesterEmail
+      ? `ผู้จอง ${requesterName} (${booking.requesterEmail}) เป็นผู้ร่วมจัดอัตโนมัติ`
+      : `ผู้จอง ${requesterName} ไม่ได้กรอกอีเมล`;
+    modalAttendees.set(parseAttendees(booking.attendeeEmails));
+    attendeeModal.hidden = false;
+    attendeeModalInput.focus();
+  }
+
+  function closeAttendeeModal() {
+    attendeeModal.hidden = true;
+    state.attendeeModalBooking = null;
+  }
+
+  async function saveAttendeeModal() {
+    const booking = state.attendeeModalBooking;
+    const asMember = state.attendeeModalMode === 'member';
+    if (!booking || !(asMember ? state.memberToken : state.adminSessionToken)) return;
+    const pending = modalAttendees.addFromInput();
+    if (pending.invalid.length || pending.overLimit.length) return;
+    if (!modalAttendees.get().length && !booking.requesterEmail) {
+      attendeeModalError.textContent = 'กรุณาใส่อีเมลอย่างน้อย 1 คน (ใส่อีเมลตัวเองก็ได้) เพื่อให้มีคนเปิดห้องและอัดวิดีโอการประชุมได้';
+      attendeeModalError.hidden = false;
+      return;
+    }
+    attendeeModalSave.disabled = true;
+    showLoading('กำลังบันทึกผู้ร่วมจัดและส่งคำเชิญ...');
+    try {
+      const result = asMember
+        ? await callApi('memberUpdateAttendees', { memberToken: state.memberToken, bookingId: booking.id, attendeeEmails: modalAttendees.get() })
+        : await callApi('adminUpdateAttendees', { sessionToken: state.adminSessionToken, bookingId: booking.id, attendeeEmails: modalAttendees.get() });
+      closeAttendeeModal();
+      if (asMember) {
+        await loadMyBookings();
+      } else {
+        await loadAdminBookings();
+        await refreshBookings();
+        await loadAdminAuditLogs();
+      }
+      if (!result.added.length && !result.removed.length) {
+        showToast('รายชื่อผู้ร่วมจัดไม่มีการเปลี่ยนแปลง', 'success');
+        return;
+      }
+      showResult({
+        eyebrow: 'Participants',
+        title: 'บันทึกผู้ร่วมจัดแล้ว',
+        message: [
+          result.added.length ? `เพิ่ม ${result.added.length} คน: ${result.added.join(', ')}` : '',
+          result.removed.length ? `ลบ ${result.removed.length} คน: ${result.removed.join(', ')}` : '',
+          'Google Calendar ส่งคำเชิญและแจ้งการเปลี่ยนแปลงทางอีเมลแล้ว'
+        ].filter(Boolean).join('\n')
+      });
+    } catch (error) {
+      attendeeModalError.textContent = `บันทึกไม่สำเร็จ: ${error.message}`;
+      attendeeModalError.hidden = false;
+    } finally {
+      hideLoading();
+      attendeeModalSave.disabled = false;
+    }
+  }
+
+  attendeeModalSave.addEventListener('click', saveAttendeeModal);
+  attendeeModalCancel.addEventListener('click', closeAttendeeModal);
+  attendeeModalClose.addEventListener('click', closeAttendeeModal);
+  attendeeModal.addEventListener('click', (event) => {
+    if (event.target === attendeeModal) closeAttendeeModal();
+  });
+
   adminBookingTableBody.addEventListener('click', async (event) => {
+    const attendeeButton = event.target.closest('.admin-edit-attendees');
+    if (attendeeButton && state.adminSessionToken) {
+      openAttendeeModal(attendeeButton.dataset.bookingId, 'admin');
+      return;
+    }
     const meetButton = event.target.closest('.admin-configure-meet');
     if (meetButton && state.adminSessionToken) {
       meetButton.disabled = true;
@@ -1306,12 +2358,12 @@
     input.addEventListener('change', () => syncDateDisplay(input));
   });
 
-  [filterRoom, filterType, filterFromDate, filterToDate, filterSearch].forEach((input) => {
+  [filterRoom, filterType, filterDepartment, filterFromDate, filterToDate, filterSearch].forEach((input) => {
     input.addEventListener('input', renderList);
     input.addEventListener('change', renderList);
   });
 
-  [calendarFilterRoom, calendarFilterType, calendarFilterFromDate, calendarFilterToDate, calendarFilterSearch].forEach((input) => {
+  [calendarFilterRoom, calendarFilterType, calendarFilterDepartment, calendarFilterFromDate, calendarFilterToDate, calendarFilterSearch].forEach((input) => {
     input.addEventListener('input', renderCalendar);
     input.addEventListener('change', renderCalendar);
   });

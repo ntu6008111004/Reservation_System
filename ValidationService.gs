@@ -12,8 +12,14 @@ var ValidationService = (function () {
     if (end <= start) throw new Error('End time must be after start time');
   }
 
+  function isEmail(value) {
+    var email = String(value === undefined || value === null ? '' : value).trim();
+    return email.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
+
   return {
     requireFields: requireFields,
-    validateBookingWindow: validateBookingWindow
+    validateBookingWindow: validateBookingWindow,
+    isEmail: isEmail
   };
 })();

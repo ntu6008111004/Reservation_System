@@ -8,6 +8,10 @@ var CacheLayer = (function () {
     CacheService.getScriptCache().put(key, JSON.stringify(value), seconds || 300);
   }
 
+  function remove(key) {
+    CacheService.getScriptCache().remove(key);
+  }
+
   function test() {
     var key = 'diagnostic-cache';
     put(key, { ok: true }, 60);
@@ -17,6 +21,7 @@ var CacheLayer = (function () {
   return {
     get: get,
     put: put,
+    remove: remove,
     test: test
   };
 })();

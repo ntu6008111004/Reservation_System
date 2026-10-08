@@ -16,7 +16,7 @@
         <div>
           <p class="eyebrow">Reservation System</p>
           <h1>ระบบจองห้องประชุม</h1>
-          <p class="lead">จองห้องประชุม ดูรายการจองแบบ Card/Table เปิดปฏิทิน และจัดการฝั่งผู้ดูแลได้จากหน้าเดียว</p>
+          <p class="lead">เข้าสู่ระบบด้วยเบอร์มือถือ แล้วจองห้องประชุม ประชุมออนไลน์ (Google Meet) หรือประชุมนอกสถานที่ และดูรายการจองของคุณได้จากหน้าเดียว</p>
         </div>
         <div class="hero-status">
           <span class="status-dot"></span>
@@ -29,13 +29,70 @@
 
       <nav class="top-tabs" aria-label="เมนูหลัก">
         <button type="button" class="tab-button active" data-tab="booking">จองห้อง</button>
-        <button type="button" class="tab-button" data-tab="list">รายการจอง</button>
-        <button type="button" class="tab-button" data-tab="calendar">ปฏิทิน</button>
+        <button type="button" class="tab-button" data-tab="mine">รายการจอง</button>
+        <button type="button" class="tab-button" data-tab="list" data-admin-only hidden>รายการจองทั้งหมด</button>
+        <button type="button" class="tab-button" data-tab="calendar" data-admin-only hidden>ปฏิทิน</button>
         <button type="button" class="tab-button admin-tab" data-tab="admin">ผู้ดูแลระบบ</button>
       </nav>
 
+      <section id="memberBar" class="member-bar" hidden>
+        <div>
+          <span class="member-bar-label">จองในนาม</span>
+          <strong id="memberBarName"></strong>
+          <span id="memberBarPhone" class="muted"></span>
+        </div>
+        <button type="button" class="secondary" id="memberLogoutButton">ออกจากระบบ</button>
+      </section>
+
+      <section id="memberGate" class="panel member-gate" hidden>
+        <div id="memberLoginStep">
+          <p class="eyebrow">Sign in</p>
+          <h2>เข้าสู่ระบบด้วยเบอร์มือถือ</h2>
+          <p class="helper-text">ใช้เบอร์มือถือของคุณ พนักงานที่มีรายชื่อในระบบทรัพย์สินเข้าได้ทันที ถ้ายังไม่มีรายชื่อระบบจะให้ลงทะเบียนครั้งแรกครั้งเดียว</p>
+          <div class="member-login-row">
+            <div class="field">
+              <label for="memberPhoneInput" class="required">เบอร์มือถือ</label>
+              <input id="memberPhoneInput" type="tel" inputmode="tel" autocomplete="tel" placeholder="08x-xxx-xxxx">
+            </div>
+            <button type="button" id="memberLoginButton">เข้าสู่ระบบ</button>
+          </div>
+          <label class="remember-row">
+            <input id="memberRememberToggle" type="checkbox" checked>
+            <span>จดจำการเข้าสู่ระบบในเครื่องนี้ 30 วัน (ไม่ต้องกรอกเบอร์ซ้ำ)</span>
+          </label>
+        </div>
+        <div id="memberRegisterStep" hidden>
+          <p class="eyebrow">Register</p>
+          <h2>ลงทะเบียนครั้งแรก</h2>
+          <p class="helper-text">ยังไม่พบเบอร์ <strong id="memberRegisterPhone"></strong> ในระบบ กรอกข้อมูลครั้งเดียว ครั้งต่อไปกรอกแค่เบอร์</p>
+          <div class="booking-form">
+            <div class="field">
+              <label for="memberFullName" class="required">ชื่อ-นามสกุล</label>
+              <input id="memberFullName" autocomplete="name" placeholder="ชื่อ-นามสกุล">
+            </div>
+            <div class="field">
+              <label for="memberNickName">ชื่อเล่น</label>
+              <input id="memberNickName" placeholder="ชื่อเล่น">
+            </div>
+            <div class="field">
+              <label for="memberDepartment">ฝ่าย</label>
+              <input id="memberDepartment" list="memberDepartmentOptions" placeholder="เลือกหรือพิมพ์ฝ่าย">
+              <datalist id="memberDepartmentOptions"></datalist>
+            </div>
+            <div class="field">
+              <label for="memberEmail">อีเมล <span class="optional-tag">(ใช้รับคำเชิญประชุมออนไลน์)</span></label>
+              <input id="memberEmail" type="email" autocomplete="email" placeholder="name@company.com">
+            </div>
+            <div class="form-actions full">
+              <button type="button" class="secondary" id="memberChangePhoneButton">เปลี่ยนเบอร์</button>
+              <button type="button" id="memberRegisterButton">ลงทะเบียนและเข้าสู่ระบบ</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section id="tab-booking" class="tab-view active">
-        <section class="content-grid">
+        <section id="bookingLayout" class="content-grid public-layout">
           <section class="panel booking-panel">
             <div class="panel-heading">
               <div>
@@ -92,6 +149,34 @@
               <div class="field">
                 <label for="requesterEmail">อีเมลผู้จอง</label>
                 <input id="requesterEmail" name="requesterEmail" type="email" placeholder="name@company.com">
+              </div>
+
+              <div class="field">
+                <label for="departmentSelect" class="required">ฝ่าย</label>
+                <select id="departmentSelect" name="department" required>
+                  <option value="">— เลือกฝ่าย —</option>
+                </select>
+                <small class="field-hint">ไฟล์บันทึกการประชุมออนไลน์ถูกเก็บแยกตามฝ่าย</small>
+              </div>
+
+              <div class="field full conditional-field attendee-field" id="attendeeField" hidden>
+                <label for="attendeeInput" class="required">อีเมลคนดูแลห้องประชุม (ผู้ร่วมจัด) <span class="optional-tag">ใส่อย่างน้อย 1 คน</span></label>
+                <div class="attendee-entry">
+                  <input id="attendeeInput" type="text" inputmode="email" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="เช่น somchai@gmail.com" aria-describedby="attendeeHint attendeeCounter">
+                  <button type="button" class="secondary" id="attendeeAddButton">+ เพิ่มอีเมล</button>
+                </div>
+                <small id="attendeeError" class="field-error" role="alert" hidden></small>
+                <ul id="attendeeList" class="attendee-list" aria-label="รายชื่อผู้ร่วมจัด"></ul>
+                <small id="attendeeCounter" class="field-hint attendee-counter" aria-live="polite">ยังไม่ได้ใส่อีเมล</small>
+                <small id="attendeeHint" class="field-hint">ใส่อีเมล Gmail ของคนที่จะเข้าประชุมแน่ ๆ <strong>อย่างน้อย 1 คน</strong> (ใส่อีเมลตัวเองก็ได้ สูงสุด 24 คน) • ต้องเข้า Google Meet ด้วยอีเมลเดียวกับที่ใส่ไว้</small>
+                <div class="cohost-tip" role="note">
+                  <strong>💡 รู้ไว้สักนิด</strong>
+                  <ul>
+                    <li><b>คนดูแลห้อง (ผู้ร่วมจัด)</b> คือคนที่ใส่อีเมลในช่องนี้ จะได้อีเมลเชิญ พอเข้าห้อง<b>ระบบอัดวิดีโอให้เอง</b> กดหยุดหรือเริ่มอัดได้ และเปิดดูไฟล์ย้อนหลังได้</li>
+                    <li><b>คนเข้าประชุมทั่วไป</b> ไม่ต้องใส่อีเมล แค่ส่งลิงก์ Meet ให้ กดแล้วเข้าได้ทันที แต่อัดวิดีโอเองไม่ได้</li>
+                    <li>ถ้า<b>ไม่มีคนดูแลห้องเข้าประชุมเลย จะไม่มีวิดีโอบันทึก</b></li>
+                  </ul>
+                </div>
               </div>
 
               <div class="time-group full">
@@ -154,7 +239,7 @@
             </form>
           </section>
 
-          <aside class="side-stack">
+          <aside class="side-stack" data-admin-only hidden>
             <section class="panel summary-panel">
               <div class="panel-heading">
                 <div>
@@ -188,6 +273,23 @@
         </section>
       </section>
 
+      <section id="tab-mine" class="tab-view">
+        <section class="panel" id="myBookingsPanel" hidden>
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">My Bookings</p>
+              <h2>รายการจองของฉัน</h2>
+            </div>
+            <button type="button" class="secondary" id="myBookingsRefreshButton">โหลดข้อมูลใหม่</button>
+          </div>
+          <p class="helper-text">แสดงเฉพาะรายการที่คุณจองหลังเข้าสู่ระบบ คนอื่นมองไม่เห็นรายการของคุณ ยกเลิกได้ก่อนถึงเวลาประชุม และแก้อีเมลผู้ร่วมจัดของประชุมออนไลน์ได้</p>
+          <h3 class="section-title">กำลังจะถึง</h3>
+          <div id="myUpcomingList" class="booking-list my-booking-list"></div>
+          <h3 class="section-title">ประวัติการจอง</h3>
+          <div id="myHistoryList" class="booking-list my-booking-list"></div>
+        </section>
+      </section>
+
       <section id="tab-list" class="tab-view">
         <section class="panel">
           <div class="panel-heading">
@@ -210,6 +312,10 @@
                 <option value="ONLINE">ออนไลน์</option>
                 <option value="OFFSITE">นอกสถานที่</option>
               </select>
+            </div>
+            <div class="field">
+              <label for="filterDepartment">ฝ่าย</label>
+              <select id="filterDepartment"><option value="">ทั้งหมด</option></select>
             </div>
             <div class="field">
               <label for="filterFromDate">ตั้งแต่วันที่</label>
@@ -282,6 +388,10 @@
               </select>
             </div>
             <div class="field">
+              <label for="calendarFilterDepartment">ฝ่าย</label>
+              <select id="calendarFilterDepartment"><option value="">ทั้งหมด</option></select>
+            </div>
+            <div class="field">
               <label for="calendarFilterFromDate">ตั้งแต่วันที่</label>
               <div class="date-picker-control">
                 <input id="calendarFilterFromDate" class="native-date-input" type="date">
@@ -331,6 +441,12 @@
                 <label for="adminPassword">รหัสผ่าน</label>
                 <input id="adminPassword" type="password" placeholder="รหัสผ่านผู้ดูแล">
               </div>
+              <div class="field full" style="grid-column: 1 / -1; margin-top: -4px;">
+                <label style="display: flex; align-items: center; gap: 8px; font-weight: 400; cursor: pointer; font-size: 0.9rem;">
+                  <input id="adminRememberMeToggle" type="checkbox" checked style="width: auto; margin: 0;">
+                  <span>จดจำการเข้าสู่ระบบในเครื่องนี้ (ไม่ต้องกรอกรหัสผ่านซ้ำ)</span>
+                </label>
+              </div>
               <div class="form-actions">
                 <button type="button" id="adminLoginButton">เข้าสู่ระบบ</button>
                 <button type="button" class="secondary" id="adminLogoutButton" disabled>ออกจากระบบ</button>
@@ -349,12 +465,13 @@
           <section class="panel" data-admin-only hidden>
             <div class="admin-subnav">
               <button type="button" class="secondary" data-admin-switch-tab="booking">จองแทนผู้ใช้</button>
-              <button type="button" class="secondary" data-admin-switch-tab="list">ดูรายการผู้ใช้</button>
+              <button type="button" class="secondary" data-admin-switch-tab="list">ดูรายการจองทั้งหมด</button>
               <button type="button" class="secondary" data-admin-switch-tab="calendar">ดูปฏิทินผู้ใช้</button>
               <a href="#adminDashboardPanel">Dashboard</a>
               <a href="#adminBookingsPanel">รายการจอง</a>
               <a href="#adminRoomsPanel">ทรัพยากร</a>
               <a href="#adminFeatureSettingsPanel">ตั้งค่าฟีเจอร์</a>
+              <a href="#adminMeetAutoEndPanel">Auto End Monitoring</a>
               <a href="#adminAuditPanel">Audit Log</a>
               <a href="#adminDiagnosticsPanel">Diagnostics</a>
               <a href="#adminMaintenancePanel">Maintenance</a>
@@ -377,6 +494,8 @@
               <div><strong id="adminCancelledBookings">0</strong><span>ยกเลิกแล้ว</span></div>
               <div><strong id="adminActiveRooms">0</strong><span>ทรัพยากร</span></div>
             </div>
+            <h3 class="section-title">สรุปตามฝ่าย</h3>
+            <div id="adminDepartmentSummary" class="department-summary"></div>
             <div id="adminRecentBookings" class="booking-list admin-list"></div>
           </section>
 
@@ -434,31 +553,108 @@
                 </span>
               </label>
               <label class="feature-toggle">
-                <input id="calendarInviteRequesterToggle" type="checkbox">
-                <span>
-                  <strong>เชิญอีเมลผู้จองเข้า Google Meet</strong>
-                  <small>เจ้าของระบบยังเป็นผู้สร้าง Meet หลัก แต่ถ้าเปิดฟีเจอร์นี้ ระบบจะเชิญอีเมลที่ผู้จองกรอกเป็นผู้ร่วมประชุม</small>
-                </span>
-              </label>
-              <label class="feature-toggle">
                 <input id="meetOpenAccessToggle" type="checkbox">
                 <span>
                   <strong>ผู้ที่มีลิงก์ Google Meet เข้าประชุมได้ทันที</strong>
-                  <small>ตั้งค่า Meet เป็น Open ต่อรายการจอง ผู้ใช้ที่มีลิงก์จะไม่ต้องรอผู้จัดกดอนุญาต</small>
+                  <small>ห้องเป็นแบบ Open ใครมีลิงก์ก็ไม่ต้องรอกดอนุญาต (ถ้าปิด คนที่ถูกเชิญยังเข้าได้ทันที ส่วนคนอื่นต้องขอเข้า) — ทุกคนแชร์จอได้เองโดยไม่ต้องขอ</small>
                 </span>
               </label>
               <label class="feature-toggle">
                 <input id="meetAutoRecordingToggle" type="checkbox">
                 <span>
                   <strong>บันทึกการประชุมออนไลน์อัตโนมัติ</strong>
-                  <small>Google Meet จะเริ่มบันทึกเมื่อบัญชีที่มีสิทธิ์บันทึกเข้าร่วม และระบบจะจัดชื่อ/โฟลเดอร์ไฟล์ใน Drive หลังไฟล์พร้อม</small>
+                  <small>Google Meet เริ่มบันทึกเองเมื่อมีคนเริ่มประชุม และหยุดเมื่อคนสุดท้ายออก (ต้องใช้บัญชี Google Workspace เช่น info@dentcos.com) ระบบตั้งชื่อและย้ายไฟล์เข้าโฟลเดอร์ด้านล่างหลังไฟล์พร้อม</small>
                 </span>
               </label>
+              <label class="feature-toggle">
+                <input id="meetCoHostsToggle" type="checkbox">
+                <span>
+                  <strong>ผู้จองและอีเมลที่กรอกในการจองเป็นผู้ร่วมจัด (co-host)</strong>
+                  <small>ผู้ร่วมจัดกดบันทึก รับคนเข้าห้อง และจัดการห้องได้ (ใช้ Gmail ธรรมดาได้) และทำให้การบันทึกอัตโนมัติเริ่มได้โดยไม่ต้องมีบัญชีระบบอยู่ในห้อง</small>
+                </span>
+              </label>
+              <label class="feature-toggle">
+                <input id="meetRecordingsAdminOnlyToggle" type="checkbox">
+                <span>
+                  <strong>ไฟล์บันทึกเปิดได้เฉพาะผู้ดูแล</strong>
+                  <small>ปิด (ค่าแนะนำ): ผู้จองและผู้ร่วมจัดได้สิทธิ์ผู้แก้ไขไฟล์ เปิด ดาวน์โหลด และแชร์ต่อเองได้ — เปิด: หลังย้ายไฟล์ ระบบเอาสิทธิ์ของผู้ร่วมจัดออก เหลือเฉพาะบัญชีระบบ เจ้าของโฟลเดอร์ และผู้ดูแล</small>
+                </span>
+              </label>
+              <label class="feature-toggle">
+                <input id="meetAutoEndToggle" type="checkbox">
+                <span>
+                  <strong>จบการประชุม Google Meet อัตโนมัติ (Auto End Meeting)</strong>
+                  <small>เมื่อเหลือผู้เข้าร่วมคนเดียวต่อเนื่องครบกำหนด ระบบจบห้องประชุมให้ (การบันทึกหยุดด้วย) ตรวจทุก 1 นาที</small>
+                </span>
+              </label>
+              <div class="field full" style="margin-top: 8px;">
+                <label for="meetAutoEndMinutesInput">จำนวนเวลาที่เหลือผู้เข้าร่วม 1 คน (นาที)</label>
+                <input id="meetAutoEndMinutesInput" type="number" min="1" max="120" value="10" placeholder="10" style="max-width: 200px;">
+                <small class="field-hint">ค่าเริ่มต้น 10 นาที (ระบบตรวจทุก 1 นาที)</small>
+              </div>
+              <div class="field full">
+                <label for="maxMeetingAttendeesInput">จำนวนผู้ร่วมจัดสูงสุดต่อการจองออนไลน์</label>
+                <input id="maxMeetingAttendeesInput" type="number" min="1" max="24" value="24" placeholder="24" style="max-width: 200px;">
+                <small class="field-hint">1–24 อีเมล (Google ให้ผู้ร่วมจัดได้ 25 คนต่อห้อง รวมผู้จอง) ผู้เข้าร่วมคนอื่นเข้าด้วยลิงก์ Meet ได้โดยไม่ต้องกรอก</small>
+              </div>
             </div>
             <p id="adminFeatureSettingsState" class="feature-settings-state" aria-live="polite">ยังไม่ได้บันทึกการเปลี่ยนแปลง</p>
+            <div class="field full recordings-folder-field">
+              <label for="recordingsFolderInput">โฟลเดอร์เก็บไฟล์บันทึกการประชุม (ลิงก์ Google Drive)</label>
+              <div class="inline-field">
+                <input id="recordingsFolderInput" type="text" placeholder="https://drive.google.com/drive/folders/..." autocomplete="off">
+                <button type="button" class="secondary" id="recordingsFolderSaveButton" disabled>ใช้โฟลเดอร์นี้</button>
+              </div>
+              <small class="field-hint">แชร์โฟลเดอร์ (เช่นของ tsmile.it.official) ให้บัญชีระบบเป็น "ผู้แก้ไข" ก่อน</small>
+              <p id="recordingsFolderState" class="feature-settings-state" aria-live="polite">ยังไม่ได้ตั้งโฟลเดอร์</p>
+            </div>
+            <div class="field full department-admin">
+              <label for="departmentNameInput">ฝ่ายที่ให้เลือกตอนจอง</label>
+              <p id="assetDepartmentList" class="helper-text"></p>
+              <div id="extraDepartmentList" class="department-chips"></div>
+              <div class="inline-field">
+                <input id="departmentNameInput" type="text" placeholder="เช่น ผู้บริหาร" maxlength="60" autocomplete="off">
+                <button type="button" class="secondary" id="departmentAddButton" disabled>เพิ่มฝ่าย</button>
+              </div>
+              <small class="field-hint">ฝ่ายจากระบบทรัพย์สินดึงมาอัตโนมัติ (ลบที่นี่ไม่ได้) — เพิ่มได้เฉพาะฝ่ายที่ไม่มีในระบบทรัพย์สิน ไฟล์บันทึกการประชุมแยกโฟลเดอร์ตามฝ่าย</small>
+              <p id="departmentState" class="feature-settings-state" aria-live="polite"></p>
+            </div>
+            <p id="systemAccountState" class="feature-settings-state" aria-live="polite"></p>
             <div class="panel-actions">
               <button type="button" class="secondary" id="adminMeetAuthorizationButton" disabled>ตรวจสิทธิ์ Google Meet API</button>
               <button type="button" id="adminSyncMeetRecordingsButton" disabled>ตรวจและจัดไฟล์บันทึก Meet</button>
+            </div>
+          </section>
+
+          <section id="adminMeetAutoEndPanel" class="panel" data-admin-only hidden>
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Auto End Meeting Monitor</p>
+                <h2>ระบบติดตามและจบห้องประชุมอัตโนมัติ</h2>
+              </div>
+              <button type="button" id="adminRunAutoEndCheckButton" disabled>ตรวจสอบสถานะล่าสุด</button>
+            </div>
+            <p class="helper-text">ระบบตรวจทุก 1 นาที เฉพาะห้องประชุมออนไลน์ของบัญชีระบบ ตั้งแต่ 30 นาทีก่อนเริ่มจนถึง 4 ชั่วโมงหลังเวลาที่จองไว้</p>
+            <div class="metrics admin-metrics" style="grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));">
+              <div><strong id="adminMeetAutoEndStatusBadge">-</strong><span>สถานะฟีเจอร์</span></div>
+              <div><strong id="adminMeetAutoEndMonitoredCount">0</strong><span>ห้องที่กำลังตรวจสอบ</span></div>
+              <div><strong id="adminMeetAutoEndSingletonsCount">0</strong><span>ห้องที่เหลือ 1 คน</span></div>
+            </div>
+            <div class="table-wrap" style="margin-top: 16px;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>ห้อง / หัวข้อ</th>
+                    <th>Meet Code</th>
+                    <th>เวลาเริ่มจับ (1 คน)</th>
+                    <th>จับเวลาแล้ว</th>
+                    <th>กำหนดจบห้อง</th>
+                  </tr>
+                </thead>
+                <tbody id="adminMeetAutoEndSingletonsTableBody">
+                  <tr><td colspan="5">ไม่มีห้องที่เหลือผู้เข้าร่วมคนเดียวในขณะนี้</td></tr>
+                </tbody>
+              </table>
             </div>
           </section>
 
@@ -529,6 +725,28 @@
         <h2 id="resultTitle">ทำรายการสำเร็จ</h2>
         <p id="resultMessage"></p>
         <div id="resultActions" class="modal-actions"></div>
+      </div>
+    </div>
+
+    <div id="attendeeModal" class="modal-backdrop" hidden>
+      <div class="modal attendee-modal" role="dialog" aria-modal="true" aria-labelledby="attendeeModalTitle">
+        <button type="button" class="modal-close" id="attendeeModalClose" aria-label="ปิด">×</button>
+        <p class="eyebrow">Participants</p>
+        <h2 id="attendeeModalTitle">ผู้ร่วมจัด (co-host)</h2>
+        <p id="attendeeModalMeta"></p>
+        <p id="attendeeModalRequester" class="field-hint"></p>
+        <div class="attendee-entry">
+          <input id="attendeeModalInput" type="text" inputmode="email" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="name@company.com" aria-label="อีเมลผู้ร่วมจัด">
+          <button type="button" class="secondary" id="attendeeModalAddButton">+ เพิ่ม</button>
+        </div>
+        <small id="attendeeModalError" class="field-error" role="alert" hidden></small>
+        <ul id="attendeeModalList" class="attendee-list" aria-label="รายชื่อผู้ร่วมจัด"></ul>
+        <small id="attendeeModalCounter" class="field-hint attendee-counter" aria-live="polite"></small>
+        <p class="field-hint">เมื่อบันทึก ระบบตั้งคนที่เพิ่มเป็นผู้ร่วมจัดใน Meet และ Google Calendar ส่งคำเชิญให้ แจ้งยกเลิกให้คนที่ถูกลบ และแจ้งการเปลี่ยนแปลงให้ผู้ร่วมจัดเดิม</p>
+        <div class="modal-actions">
+          <button type="button" id="attendeeModalSave">บันทึกและส่งคำเชิญ</button>
+          <button type="button" class="secondary" id="attendeeModalCancel">ยกเลิก</button>
+        </div>
       </div>
     </div>
 

@@ -1,6 +1,6 @@
 var DatabaseService = (function () {
   var SHEETS = {
-    bookings: ['id', 'createdAt', 'updatedAt', 'status', 'roomId', 'roomName', 'title', 'requesterName', 'requesterEmail', 'startTime', 'endTime', 'meetingType', 'meetUrl', 'calendarEventId', 'notes', 'createdBy', 'approvedBy', 'cancelledAt', 'gpsUrl', 'meetCode', 'meetSpaceName', 'meetConfigStatus', 'recordingFileId', 'recordingUrl', 'recordingSyncedAt'],
+    bookings: ['id', 'createdAt', 'updatedAt', 'status', 'roomId', 'roomName', 'title', 'requesterName', 'requesterEmail', 'startTime', 'endTime', 'meetingType', 'meetUrl', 'calendarEventId', 'notes', 'createdBy', 'approvedBy', 'cancelledAt', 'gpsUrl', 'meetCode', 'meetSpaceName', 'meetConfigStatus', 'recordingFileId', 'recordingUrl', 'recordingSyncedAt', 'meetingSpaceId', 'conferenceRecordName', 'singletonSince', 'autoEndedAt', 'autoEndReason', 'autoEndStatus', 'attendeeEmails', 'memberId', 'requesterPhone', 'calendarId', 'meetSource', 'department'],
     booking_index: ['key', 'bookingId', 'roomId', 'startTime', 'endTime', 'status'],
     admins: ['username', 'email', 'passwordHash', 'salt', 'role', 'active', 'mustChangePassword', 'createdAt', 'updatedAt'],
     admin_sessions: ['sessionId', 'username', 'tokenHash', 'createdAt', 'expiresAt', 'active'],
@@ -8,6 +8,8 @@ var DatabaseService = (function () {
     usage_events: ['id', 'timestamp', 'eventName', 'actor', 'metadata'],
     settings: ['key', 'value', 'description', 'updatedAt'],
     rooms: ['id', 'name', 'capacity', 'location', 'type', 'active', 'notes'],
+    members: ['id', 'phone', 'phoneKey', 'fullName', 'nickName', 'department', 'email', 'source', 'assetStaffId', 'active', 'createdAt', 'updatedAt', 'lastLoginAt', 'lastDepartment'],
+    member_sessions: ['sessionId', 'memberId', 'tokenHash', 'createdAt', 'expiresAt', 'active'],
     system_meta: ['key', 'value', 'updatedAt']
   };
   var ROW_BUFFER_THRESHOLD = 100;
@@ -17,11 +19,18 @@ var DatabaseService = (function () {
     return SpreadsheetApp.openById(getSpreadsheetId());
   }
 
+  function ensureColumnCapacity(sheet, columns) {
+    var maxColumns = sheet.getMaxColumns();
+    // New Google Sheets tabs have 26 columns; wider schemas must grow the grid before getRange.
+    if (maxColumns < columns) sheet.insertColumnsAfter(maxColumns, columns - maxColumns);
+  }
+
   function ensureSheet(name) {
-    var ss = spreadsheet();
-    var sheet = ss.getSheetByName(name) || ss.insertSheet(name);
     var headers = SHEETS[name];
     if (!headers) throw new Error('Unknown sheet: ' + name);
+    var ss = spreadsheet();
+    var sheet = ss.getSheetByName(name) || ss.insertSheet(name);
+    ensureColumnCapacity(sheet, headers.length);
     var current = sheet.getLastColumn() ? sheet.getRange(1, 1, 1, Math.max(sheet.getLastColumn(), headers.length)).getValues()[0] : [];
     var changed = false;
     headers.forEach(function (header, index) {
@@ -91,10 +100,17 @@ var DatabaseService = (function () {
     });
   }
 
+  // Public form text must never become a live formula (e.g. =IMPORTXML(...) could leak sheet data);
+  // the leading apostrophe makes Sheets store it as plain text and is not returned on read.
+  function toCellValue(value) {
+    if (value === undefined) return '';
+    return typeof value === 'string' && /^[=+\-@']/.test(value) ? "'" + value : value;
+  }
+
   function appendObject(name, object) {
     var sheet = ensureSheet(name);
     ensureRowCapacity(name, sheet);
-    var row = headers(name).map(function (key) { return object[key] === undefined ? '' : object[key]; });
+    var row = headers(name).map(function (key) { return toCellValue(object[key]); });
     sheet.appendRow(row);
     return object;
   }
@@ -114,7 +130,7 @@ var DatabaseService = (function () {
     var lastRow = sheet.getLastRow();
     for (var rowIndex = 2; rowIndex <= lastRow; rowIndex++) {
       if (String(sheet.getRange(rowIndex, keyIndex + 1).getValue()) === String(keyValue)) {
-        var row = allHeaders.map(function (key) { return object[key] === undefined ? sheet.getRange(rowIndex, allHeaders.indexOf(key) + 1).getValue() : object[key]; });
+        var row = allHeaders.map(function (key) { return toCellValue(object[key] === undefined ? sheet.getRange(rowIndex, allHeaders.indexOf(key) + 1).getValue() : object[key]); });
         sheet.getRange(rowIndex, 1, 1, allHeaders.length).setValues([row]);
         return object;
       }
